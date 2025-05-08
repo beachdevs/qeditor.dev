@@ -2,8 +2,6 @@
 
 **Custom Elements Playground** is a live HTML/JS editor designed specifically for building and testing custom web components in real time.
 
-![screenshot](screenshot.png) <!-- Replace with actual image path -->
-
 ## ✨ Features
 
 - Live preview of your custom elements
