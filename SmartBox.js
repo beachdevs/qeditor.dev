@@ -118,6 +118,14 @@ class SmartBox extends HTMLElement {
           code = htmlMatch[1];
         }
       }
+   
+      if (code.includes('```javascript')) {
+        const htmlMatch = code.match(/```javascript\n([\s\S]*?)```/);
+        if (htmlMatch) {
+          code = `<script>\n${htmlMatch[1]}\n</script>`;
+        }
+      }
+
       editor.value = code;
       // Trigger input event to update preview
       editor.dispatchEvent(new Event('input'));
