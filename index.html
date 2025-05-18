@@ -8,86 +8,16 @@
     <meta name="author" content="Web Components Developer">
     <meta name="application-name" content="Custom Elements Playground">
     <script type="module" src="SmartBox.js"></script>
+    <script src="https://unpkg.com/prettier@2.8.8/standalone.js"></script>
+    <script src="https://unpkg.com/prettier@2.8.8/parser-html.js"></script>
+    <script src="https://unpkg.com/prettier@2.8.8/parser-babel.js"></script>
+    <script src="https://unpkg.com/prettier@2.8.8/parser-postcss.js"></script>
+    <script src="https://unpkg.com/@prettier/plugin-php@0.21.0/standalone.js"></script>
     <script src="https://cdn.counter.dev/script.js" data-id="b776fd07-46c1-47fc-98f6-472310d54f95" data-utcoffset="-5"></script>
-    <title>Web Components Playground</title>
-
+    <title>QEditor</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
-    
-    <style>
-        body, html {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            font-family: sans-serif;
-            overflow: hidden;
-        }
-        .container {
-            display: flex;
-            height: 100vh;
-        }
-        smart-box {
-            position: absolute;
-            z-index: 9000;
-            bottom: 100px;
-            right: 70px;
-        }
-        .panel {
-            flex: 1;
-            height: 100%;
-            overflow: hidden; /* Manage scrolling inside children */
-            box-sizing: border-box;
-            position: relative;
-        }
-        #editor-wrapper {
-            width: 100%;
-            height: 100%;
-            position: relative;
-            border-left: 1px solid #444; /* Darker border for dark theme */
-        }
-        #editor, #highlighting-pre {
-            margin: 0;
-            padding: 10px;
-            box-sizing: border-box;
-            font-family: Menlo, Consolas, Monaco, 'Courier New', monospace;
-            font-size: 14px;
-            line-height: 1.5;
-            height: 100%;
-            width: 100%;
-            overflow-y: auto; /* Allow scrolling independently */
-            white-space: pre;
-            word-wrap: normal;
-        }
-        #editor { /* Textarea */
-            position: absolute;
-            top: 0;
-            left: 0;
-            z-index: 1;
-            background: transparent;
-            color: transparent; /* Make actual text transparent */
-            caret-color: #ccc; /* Visible caret matching theme */
-            border: none;
-            resize: none;
-        }
-        #highlighting-pre { /* Preformatted block for Prism.js */
-            position: absolute;
-            top: 0;
-            left: 0;
-            z-index: 0;
-            pointer-events: none; /* Allow clicks to go through to textarea */
-            color: #ccc; /* Default text color for pre */
-            background: #2d2d2d; /* Matches Prism theme background */
-            border: none;
-        }
-        #highlighting-pre code {
-            display: block;
-        }
-        iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-            background: white;
-        }
-    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="container">
@@ -98,7 +28,7 @@
             <smart-box style="position: absolute; bottom: 20px; right: 20px; z-index: 1000;"></smart-box>
             <div id="editor-wrapper">
                 <textarea id="editor" spellcheck="false" autocapitalize="off" autocorrect="off" placeholder="Type HTML and JavaScript here...">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
 <script>
   class MyElement extends HTMLElement {
     connectedCallback() {
@@ -110,9 +40,8 @@
 </script>
 
 <my-element></my-element>
-                  
                 </textarea>
-                
+                <div class="format-hint">⌘⇧F format</div>
                 <pre id="highlighting-pre" aria-hidden="true"><code class="language-html" id="highlighting-code"></code></pre>
             </div>
         </div>
@@ -160,6 +89,27 @@
             previewFrame.srcdoc = iframeContent;
         }
 
+        // Renamed from formatJS to formatCode for clarity
+        async function formatCode(code) {
+            try {
+                // Added plugins: prettierPlugins
+                return await prettier.format(code, {
+                    parser: "html",
+                    plugins: prettierPlugins, // Crucial for making parsers available
+                    printWidth: 120,
+                    tabWidth: 2,
+                    useTabs: false,
+                    singleQuote: true,
+                    bracketSameLine: true,
+                    htmlWhitespaceSensitivity: 'ignore',
+                    embeddedLanguageFormatting: 'auto'
+                });
+            } catch (err) {
+                console.error("Formatting error:", err);
+                return code; // Return original code on error
+            }
+        }
+
         function syncScroll() {
             const pre = document.getElementById('highlighting-pre');
             pre.scrollTop = editor.scrollTop;
@@ -176,15 +126,43 @@
 
         editor.addEventListener('scroll', syncScroll); // Sync scroll on textarea scroll
 
-        // Initial empty preview and highlight
-        updatePreview('');
-        highlightingCodeEl.textContent = '';
-        Prism.highlightElement(highlightingCodeEl);
+        window.addEventListener("keydown", async e => {
+            const isMac = navigator.platform.includes("Mac");
+            const cmdOrCtrl = isMac ? e.metaKey : e.ctrlKey;
+            if (cmdOrCtrl && e.shiftKey && e.key.toUpperCase() === "F") {
+                e.preventDefault();
 
-        // Small fix for initial load if placeholder is styled to be visible
-        // or if there was initial content.
+                // Wait for Prettier and plugins to load
+                if (typeof prettier === "undefined" || typeof prettierPlugins === "undefined") {
+                    alert("Prettier is still loading... Please wait a moment and try again.");
+                    return;
+                }
+
+                try {
+                    // Call the renamed function formatCode
+                    const formatted = await formatCode(editor.value);
+                    editor.value = formatted;
+                    editor.dispatchEvent(new Event("input")); // update preview + highlight
+                } catch (err) {
+                    console.error("Prettier formatting failed:", err);
+                    alert("Formatting failed. Check console for details.");
+                }
+            }
+        });
+
+        // Initial empty preview and highlight
+        // updatePreview(''); // Removed to show initial content
+        // highlightingCodeEl.textContent = ''; // Removed to show initial content
+        // Prism.highlightElement(highlightingCodeEl); // Will be handled by dispatching event
+
+        // Initial load: update preview and highlight with existing content
         if (editor.value) {
              editor.dispatchEvent(new Event('input'));
+        } else {
+            // If editor is truly empty initially, still setup highlighting and preview
+            updatePreview('');
+            highlightingCodeEl.textContent = '';
+            Prism.highlightElement(highlightingCodeEl);
         }
     </script>
 </body>
