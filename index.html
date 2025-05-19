@@ -25,17 +25,16 @@
             <iframe id="preview-frame"></iframe>
         </div>
         <div class="panel" id="editor-container">
+            <button id="use-base-element" class="base-element-btn">Use BaseElement</button>
             <smart-box style="position: absolute; bottom: 20px; right: 20px; z-index: 1000;"></smart-box>
             <div id="editor-wrapper">
                 <textarea id="editor" spellcheck="false" autocapitalize="off" autocorrect="off" placeholder="Type HTML and JavaScript here...">
-
 <script>
   class MyElement extends HTMLElement {
     connectedCallback() {
       this.innerHTML = `<p>Hello from custom element!</p>`;
     }
   }
-
   customElements.define('my-element', MyElement);
 </script>
 
@@ -47,6 +46,26 @@
         </div>
     </div>
 
+    <style>
+        .base-element-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+            padding: 8px 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+
+        .base-element-btn:hover {
+            background-color: #45a049;
+        }
+    </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
 
@@ -55,6 +74,7 @@
         const highlightingCodeEl = document.getElementById('highlighting-code');
         const previewFrame = document.getElementById('preview-frame');
         const editorWrapper = document.getElementById('editor-wrapper'); // For scroll sync
+        const useBaseElementBtn = document.getElementById('use-base-element');
 
         function updatePreview(code) {
             const iframeContent = `
@@ -164,6 +184,30 @@
             highlightingCodeEl.textContent = '';
             Prism.highlightElement(highlightingCodeEl);
         }
+
+        const baseElementCode = `<script type="module">
+import BaseElement from "https://digplan.app/js/base-classes/BaseElement.js";
+class MyElement extends BaseElement {
+    static { this.observe("label"); }
+    html() { 
+        return \`<div></div>\`;
+    }
+    style() {
+        return \`div { color: red }\`;
+    }
+    attrLabel(value) {
+        this.querySelector("div").textContent = value;
+    }
+}
+customElements.define("my-element", MyElement);
+
+const el = new MyElement();
+el.setAttribute("label", "Hello World");
+<\/script>`;
+        useBaseElementBtn.addEventListener('click', () => {
+            editor.value = baseElementCode;
+            editor.dispatchEvent(new Event('input'));
+        });
     </script>
 </body>
 </html>
