@@ -190,20 +190,29 @@ import BaseElement from "https://digplan.app/js/components/BaseElement.js";
 class MyElement extends BaseElement {
     static { this.observe("label"); }
     html() { 
-        return \`<div></div>\`;
+        return '<div></div>';
     }
     style() {
-        return \`div { color: red }\`;
+        return 'div { color: red }';
     }
     attrLabel(value) {
         this.querySelector("div").textContent = value;
     }
+    onDocumentClick() {
+        alert('Clicked ' + this.getAttribute('label'));
+    }
 }
 customElements.define("my-element", MyElement);
 
-const el = new MyElement();
-el.setAttribute("label", "Hello World");
-<\/script>`;
+window.addEventListener('DOMContentLoaded', () => {
+  const e = new MyElement();
+  e.setAttribute('label', 'Element');
+  document.body.appendChild(e);
+});
+<\/script>
+
+<my-element label="DOM element"></my-element>
+`;
         useBaseElementBtn.addEventListener('click', () => {
             editor.value = baseElementCode;
             editor.dispatchEvent(new Event('input'));
