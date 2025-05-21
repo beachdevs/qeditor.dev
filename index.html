@@ -201,6 +201,9 @@ class MyElement extends BaseElement {
     onDocumentClick() {
         alert('Clicked ' + this.getAttribute('label'));
     }
+    onSomeEvent(event) {
+        console.log('Some event', event.detail.message);
+    }
 }
 customElements.define("my-element", MyElement);
 
@@ -209,6 +212,10 @@ window.addEventListener('DOMContentLoaded', () => {
   e.setAttribute('label', 'Element');
   document.body.appendChild(e);
 });
+
+window.setInterval(() => {
+    Base.dispatch("onSomeEvent", {message: "Some event"});
+}, 1000);
 <\/script>
 
 <my-element label="DOM element"></my-element>
