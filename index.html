@@ -186,23 +186,17 @@
         }
 
         const baseElementCode = `<script type="module">
-import BaseElement from "https://digplan.app/js/components/BaseElement.js";
+import Base from "https://tinyurl.com/dpBase.js";
+import BaseElement from "https://tinyurl.com/dpBaseElement.js";
 class MyElement extends BaseElement {
-    static { this.observe("label"); }
     html() { 
-        return '<div></div>';
+        return '<div>Click me</div>';
     }
-    style() {
-        return 'my-element div { color: red }';
+    doEvents() {
+        this.addEventListener('click', Base.dispatch('onSomeEvent', {message: 'Some event'}));
     }
-    attrLabel(value) {
-        this.querySelector("div").textContent = value;
-    }
-    onDocumentClick() {
-        alert('Clicked ' + this.getAttribute('label'));
-    }
-    onSomeEvent(event) {
-        console.log('Some event', event.detail.message);
+    onSomeEvent(data) {
+        this.innerHTML += '<br>Clicked ' + JSON.stringify(data.message);
     }
 }
 customElements.define("my-element", MyElement);
@@ -212,10 +206,6 @@ window.addEventListener('DOMContentLoaded', () => {
   e.setAttribute('label', 'Element');
   document.body.appendChild(e);
 });
-
-window.setInterval(() => {
-    Base.dispatch("onSomeEvent", {message: "Some event"});
-}, 1000);
 <\/script>
 
 <my-element label="DOM element"></my-element>
