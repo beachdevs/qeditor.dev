@@ -186,14 +186,14 @@
         }
 
         const baseElementCode = `<script type="module">
-import Base from "https://tinyurl.com/dpBase.js";
-import BaseElement from "https://tinyurl.com/dpBaseElement.js";
+import Base from "https://tinyurl.com/dpBase";
+import BaseElement from "https://tinyurl.com/dpBaseElement";
 class MyElement extends BaseElement {
     html() { 
         return '<div>Click me</div>';
     }
     doEvents() {
-        this.addEventListener('click', Base.dispatch('onSomeEvent', {message: 'Some event'}));
+        this.addEventListener('click', ()=>Base.dispatch('onSomeEvent', {message: 'Some event'}));
     }
     onSomeEvent(data) {
         this.innerHTML += '<br>Clicked ' + JSON.stringify(data.message);
