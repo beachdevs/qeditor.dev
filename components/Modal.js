@@ -137,11 +137,15 @@ class Modal extends HTMLElement {
             <div class="modal-body"></div>
         </div>`;
   }
-  static show(message) {
+  static show(message, data = {}) {
     return new Promise(resolve => {
       const modal = new Modal();
       modal.querySelector('.modal-body').innerHTML = message;
       document.body.appendChild(modal);
+      // Set vals if provided
+      Object.keys(data).forEach(key => {
+        modal.querySelector(`[propname="${key}"]`).value = data[key];
+      })
       modal.querySelector('.ok').addEventListener('click', () => {
         resolve(getVals(modal));
         modal.remove();
