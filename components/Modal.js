@@ -127,12 +127,38 @@ globalThis.ModalConfirmation = class ModalConfirmation extends BaseElement {
   }
 }
 
+class Modal extends HTMLElement {
+  constructor() {
+    super();
+    this.style.zIndex = 20000;
+    this.innerHTML = `
+        <div class="modal-content">
+            <div class="close-btn ok">&times;</div>
+            <div class="modal-body"></div>
+        </div>`;
+  }
+  static show(message) {
+    return new Promise(resolve => {
+      const modal = new Modal();
+      modal.querySelector('.modal-body').innerHTML = message;
+      document.body.appendChild(modal);
+      modal.querySelector('.ok').addEventListener('click', () => {
+        resolve(getVals(modal));
+        modal.remove();
+      });
+    });
+  }
+}
+customElements.define('modal-gen', Modal);  
+
+
 // Register components
 customElements.define('modal-generic', ModalGeneric);
 customElements.define('modal-confirmation', globalThis.ModalConfirmation);
 
 // Global exports
-window.ModalGeneric = ModalGeneric;
+globalThis.ModalGeneric = ModalGeneric;
+globalThis.Modal = Modal;
 
 const ModalConfirmationExport = globalThis.ModalConfirmation;
 export { ModalGeneric, ModalConfirmationExport as ModalConfirmation };
