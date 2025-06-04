@@ -1,9 +1,8 @@
 (async () => {
   const API = Object.create(null);
+  const APIDEF = (await import('https://qeditor.dev/base-classes/APIDEF.js')).default;
 
-  const APIDEF = await import('https://qeditor.dev/base-classes/APIDEF.js');
-
-  Object.entries(APIDEF.default).forEach(([key]) => {
+  Object.entries(APIDEF).forEach(([key]) => {
     API[key] = (vars, proxy) => API._exec(key, vars, proxy);
   });
 
@@ -19,7 +18,7 @@
   }
 
   API._getDef = (name) => {
-    return name ? { command: APIDEF[name], params: APIDEF[name].match(/\$(\w+)/g) || [] } : APIDEF;
+    return { command: APIDEF[name], params: APIDEF[name].match(/\$(\w+)/g) };
   }
 
   API._parse = (command, vars) => {
