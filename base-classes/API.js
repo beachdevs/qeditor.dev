@@ -1,29 +1,28 @@
-const API = Object.create(null);
-
 (async () => {
+  const API = Object.create(null);
+
   const APIDEF = await import('https://qeditor.dev/base-classes/APIDEF.js');
-  
+
   Object.entries(APIDEF.default).forEach(([key]) => {
     API[key] = (vars, proxy) => API._exec(key, vars, proxy);
   });
-})();
 
-API._fetch = async (options, proxy) => {
+  API._fetch = async (options, proxy) => {
     const r = await fetch(proxy || options.url, proxy ? { method: 'POST', body: JSON.stringify(options) } : options);
     return { response: r, request: options, proxy, json: await r.json() };
-}
+  }
 
-API._exec = (name, vars = {}, proxy) => {
+  API._exec = (name, vars = {}, proxy) => {
     if (!APIDEF[name]) throw new Error(`Unknown command: ${name}`);
     if (typeof vars === 'string') return { def: APIDEF[name], params: API._getDef(name).params };
     return API._fetch(API._parse(APIDEF[name], vars), proxy);
-}
+  }
 
-API._getDef = (name) => {
+  API._getDef = (name) => {
     return name ? { command: APIDEF[name], params: APIDEF[name].match(/\$(\w+)/g) || [] } : APIDEF;
-}
+  }
 
-API._parse = (command, vars) => {
+  API._parse = (command, vars) => {
     try {
       command = command.replace(/\$(\w+)/g, (_, v) => v in vars ? (typeof vars[v] === 'object' ? JSON.stringify(vars[v]) : vars[v]) : `$${v}`);
       const [method, url, headers, body] = command.split('\n');
@@ -37,6 +36,6 @@ API._parse = (command, vars) => {
       console.error('Parse error:', command, vars);
       throw e;
     }
-}
-window.API = API;
-export default API;
+  }
+  window.API = API;
+})();
