@@ -3,7 +3,7 @@ const API = Object.create(null);
 (async () => {
   const APIDEF = await import('https://qeditor.dev/base-classes/APIDEF.js');
   
-  Object.entries(APIDEF).forEach(([key]) => {
+  Object.entries(APIDEF.default).forEach(([key]) => {
     API[key] = (vars, proxy) => API._exec(key, vars, proxy);
   });
 })();
