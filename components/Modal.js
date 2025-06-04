@@ -144,8 +144,9 @@ class Modal extends HTMLElement {
       document.body.appendChild(modal);
       // Set vals if provided
       Object.keys(data).forEach(key => {
-        modal.querySelector(`[propname="${key}"]`)?.value = data[key];
-      })
+        const e = modal.querySelector(`[propname="${key}"]`);
+        if(e) e.value = data[key];
+      });
       modal.querySelector('.ok').addEventListener('click', () => {
         resolve(getVals(modal));
         modal.remove();
