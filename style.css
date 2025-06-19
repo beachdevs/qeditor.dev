@@ -42,6 +42,9 @@ smart-box {
     white-space: pre;
     word-wrap: normal;
 }
+#editor.line-numbers, #highlighting-pre.line-numbers {
+    padding-left: 3.8em;
+}
 #editor { /* Textarea */
     position: absolute;
     top: 0;
