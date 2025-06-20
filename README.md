@@ -1,6 +1,6 @@
-# Custom Elements Playground
+# QEditor
 
-**Custom Elements Playground** is a live HTML/JS editor designed specifically for building and testing custom web components in real time.
+**QEditor Playground** is a live HTML/JS editor designed specifically for building and testing custom web components in real time.
 
 ## ✨ Features
 
