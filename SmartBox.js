@@ -183,6 +183,7 @@ class SmartBox extends HTMLElement {
     this.outputContent.textContent = "Thinking...";
     this.updateButtonVisibility();
 
+    text = 'When I ask you for code just give me the code. Do not include any other text.' + text;
     const API_URL = `https://digplan-gem.deno.dev?prompt=${encodeURIComponent(text)}`;
 
     try {
