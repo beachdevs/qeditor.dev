@@ -144,7 +144,8 @@
 
         editor.addEventListener('input', () => {
             const code = editor.value;
-            highlightingCodeEl.textContent = code;
+            const hcode = code.endsWith('\n') ? code + ' ' : code;
+            highlightingCodeEl.textContent = hcode;
             Prism.highlightElement(highlightingCodeEl);
             updatePreview(code);
             syncScroll(); // Sync scroll on input
