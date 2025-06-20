@@ -1,221 +1,53 @@
 <!DOCTYPE html>
 <html lang="en">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Live HTML/JS editor for developing and testing custom web components">
+<meta name="keywords" content="web components, custom elements, live editor, HTML, JavaScript, development tool">
+<meta name="author" content="Web Components Developer">
+<meta name="application-name" content="Custom Elements Playground">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNiAxNiI+PHBhdGggZD0iTTIgMTEuNVYxNGgyLjVsNy4xLTcuMS0yLjUtMi41TDIgMTEuNXpNMTMuNyA1LjNhMSAxIDAgMCAwIDAtMS40bC0xLjYtMS42YTEgMSAwIDAgMC0xLjQgMGwtMSAxIDMgMyAxLTF6IiBmaWxsPSJnb2xkIi8+PC9zdmc+"><script type="module" src="SmartBox.js"></script>
+<script src="https://unpkg.com/prettier@2.8.8/standalone.js"></script>
+<script src="https://unpkg.com/prettier@2.8.8/parser-html.js"></script>
+<script src="https://unpkg.com/prettier@2.8.8/parser-babel.js"></script>
+<script src="https://unpkg.com/prettier@2.8.8/parser-postcss.js"></script>
+<script src="https://unpkg.com/@prettier/plugin-php@0.21.0/standalone.js"></script>
+<script src="https://cdn.counter.dev/script.js" data-id="b776fd07-46c1-47fc-98f6-472310d54f95" data-utcoffset="-5"></script>
+<title>QEditor</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+<link rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+<link rel="stylesheet" href="style.css">
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Live HTML/JS editor for developing and testing custom web components">
-    <meta name="keywords" content="web components, custom elements, live editor, HTML, JavaScript, development tool">
-    <meta name="author" content="Web Components Developer">
-    <meta name="application-name" content="Custom Elements Playground">
-    <script type="module" src="SmartBox.js"></script>
-    <script src="https://unpkg.com/prettier@2.8.8/standalone.js"></script>
-    <script src="https://unpkg.com/prettier@2.8.8/parser-html.js"></script>
-    <script src="https://unpkg.com/prettier@2.8.8/parser-babel.js"></script>
-    <script src="https://unpkg.com/prettier@2.8.8/parser-postcss.js"></script>
-    <script src="https://unpkg.com/@prettier/plugin-php@0.21.0/standalone.js"></script>
-    <script src="https://cdn.counter.dev/script.js" data-id="b776fd07-46c1-47fc-98f6-472310d54f95"
-        data-utcoffset="-5"></script>
-    <title>QEditor</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-    <link rel="stylesheet" href="style.css">
-</head>
-
-<body>
-    <div class="container">
-        <div class="panel" id="preview-panel">
-            <iframe id="preview-frame"></iframe>
-        </div>
-        <div class="panel" id="editor-container">
-            <smart-box style="position: absolute; bottom: 20px; right: 20px; z-index: 1000;"></smart-box>
-            <div id="editor-wrapper">
-                <textarea id="editor" class="line-numbers" spellcheck="false" autocapitalize="off" autocorrect="off"
-                    placeholder="Type HTML and JavaScript here...">
+<div class="container">
+  <div class="panel" id="preview-panel">
+    <iframe id="preview-frame"></iframe>
+  </div>
+  <div class="panel" id="editor-container">
+    <smart-box style="position: absolute; bottom: 20px; right: 20px; z-index: 1000;"></smart-box>
+    <div id="editor-wrapper">
+      <textarea id="editor" class="line-numbers" spellcheck="false" autocapitalize="off" autocorrect="off"
+        placeholder="Type HTML and JavaScript here...">
 <script>
-    class MyElement extends HTMLElement {
-        connectedCallback() {
-            this.innerHTML = `<p>Hello from custom element!</p>`;
-        }
+  class MyElement extends HTMLElement {
+    connectedCallback() {
+      this.innerHTML = `<p>Hello from custom element!</p>`;
     }
-    customElements.define('my-element', MyElement);
+  }
+  customElements.define('my-element', MyElement);
 </script>
 
 <my-element></my-element>
                 </textarea>
-                <div class="format-hint">⌘⇧F format</div>
-                <pre id="highlighting-pre" class="line-numbers" aria-hidden="true"><code class="language-html" id="highlighting-code"></code></pre>
-            </div>
-        </div>
+      <div class="format-hint">⌘⇧F format</div>
+      <pre id="highlighting-pre" class="line-numbers"
+        aria-hidden="true"><code class="language-html" id="highlighting-code"></code></pre>
     </div>
-
-    <style>
-        .base-element-btn {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            z-index: 1000;
-            padding: 8px 16px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: background-color 0.3s;
-        }
-
-        .base-element-btn:hover {
-            background-color: #45a049;
-        }
-    </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
-    <script
-        src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
-
-    <script>
-        const editor = document.getElementById('editor');
-        const highlightingCodeEl = document.getElementById('highlighting-code');
-        const previewFrame = document.getElementById('preview-frame');
-        const editorWrapper = document.getElementById('editor-wrapper'); // For scroll sync
-        const useBaseElementBtn = document.getElementById('use-base-element');
-
-        function updatePreview(code) {
-            const iframeContent = `
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <script>
-                        window.onerror = function(message, source, lineno, colno, error) {
-                            const errorDisplay = document.createElement('div');
-                            errorDisplay.style.color = 'red';
-                            errorDisplay.style.fontFamily = 'monospace';
-                            errorDisplay.style.whiteSpace = 'pre-wrap';
-                            errorDisplay.style.padding = '10px';
-                            errorDisplay.style.borderBottom = '1px solid red';
-                            errorDisplay.textContent = \`JavaScript Error:\\n\${message}\n(Line: \${lineno}, Column: \${colno})\`;
-                            if (document.body) {
-                                document.body.insertBefore(errorDisplay, document.body.firstChild);
-                            } else {
-                                document.documentElement.prepend(errorDisplay);
-                            }
-                            // So error is also visible in browser console for more details
-                            console.error("Error in preview:", message, "at", source, lineno, colno, error);
-                            return true; // Prevent default browser error handling in preview
-                        };
-                    <\/script>
-                </head>
-                <body>
-                    ${code}
-                </body>
-                </html>
-            `;
-            previewFrame.srcdoc = iframeContent;
-        }
-
-        // Renamed from formatJS to formatCode for clarity
-        async function formatCode(code) {
-            try {
-                // Added plugins: prettierPlugins
-                return await prettier.format(code, {
-                    parser: "html",
-                    plugins: prettierPlugins, // Crucial for making parsers available
-                    printWidth: 120,
-                    tabWidth: 2,
-                    useTabs: false,
-                    singleQuote: true,
-                    bracketSameLine: true,
-                    htmlWhitespaceSensitivity: 'ignore',
-                    embeddedLanguageFormatting: 'auto'
-                });
-            } catch (err) {
-                console.error("Formatting error:", err);
-                return code; // Return original code on error
-            }
-        }
-
-        function syncScroll() {
-            const pre = document.getElementById('highlighting-pre');
-            pre.scrollTop = editor.scrollTop;
-            pre.scrollLeft = editor.scrollLeft;
-        }
-
-        editor.addEventListener('input', () => {
-            const code = editor.value;
-            const hcode = code.endsWith('\n') ? code + ' ' : code;
-            highlightingCodeEl.textContent = hcode;
-            Prism.highlightElement(highlightingCodeEl);
-            updatePreview(code);
-            syncScroll(); // Sync scroll on input
-        });
-
-        editor.addEventListener('scroll', syncScroll); // Sync scroll on textarea scroll
-
-        window.addEventListener("keydown", async e => {
-            const isMac = navigator.platform.includes("Mac");
-            const cmdOrCtrl = isMac ? e.metaKey : e.ctrlKey;
-            if (cmdOrCtrl && e.shiftKey && e.key.toUpperCase() === "F") {
-                e.preventDefault();
-
-                // Wait for Prettier and plugins to load
-                if (typeof prettier === "undefined" || typeof prettierPlugins === "undefined") {
-                    alert("Prettier is still loading... Please wait a moment and try again.");
-                    return;
-                }
-
-                try {
-                    // Call the renamed function formatCode
-                    const formatted = await formatCode(editor.value);
-                    editor.value = formatted;
-                    editor.dispatchEvent(new Event("input")); // update preview + highlight
-                } catch (err) {
-                    console.error("Prettier formatting failed:", err);
-                    alert("Formatting failed. Check console for details.");
-                }
-            }
-        });
-
-        // Initial empty preview and highlight
-        // updatePreview(''); // Removed to show initial content
-        // highlightingCodeEl.textContent = ''; // Removed to show initial content
-        // Prism.highlightElement(highlightingCodeEl); // Will be handled by dispatching event
-
-        // Initial load: update preview and highlight with existing content
-        if (editor.value) {
-            editor.dispatchEvent(new Event('input'));
-        } else {
-            // If editor is truly empty initially, still setup highlighting and preview
-            updatePreview('');
-            highlightingCodeEl.textContent = '';
-            Prism.highlightElement(highlightingCodeEl);
-        }
-
-        const baseElementCode = `<script type="module">
-import Base from "https://digplan.github.io/base/base-classes/Base.js";
-import BaseElement from "https://digplan.github.io/base/components/BaseElement.js";
-class MyElement extends BaseElement {
-    html() { 
-        return '<div>Click me</div>';
-    }
-    doEvents() {
-        this.addEventListener('click', ()=>Base.dispatch('onSomeEvent', {message: 'Some event'}));
-    }
-    onSomeEvent(data) {
-        this.innerHTML += '<br>Clicked ' + JSON.stringify(data.message);
-    }
-}
-customElements.define("my-element", MyElement);
-<\/script>
-
-<my-element></my-element>
-`;
-        useBaseElementBtn.addEventListener('click', () => {
-            editor.value = baseElementCode;
-            editor.dispatchEvent(new Event('input'));
-        });
-    </script>
-</body>
-
-</html>
+  </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+<script
+  src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+<script src="index.js"></script>
