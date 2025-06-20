@@ -99,12 +99,8 @@ window.addEventListener("keydown", async e => {
     }
 });
 
-// Initial load: update preview and highlight with existing content
-if (editor.value) {
-    editor.dispatchEvent(new Event('input'));
-} else {
-    // If editor is truly empty initially, still setup highlighting and preview
-    updatePreview('');
-    highlightingCodeEl.textContent = '';
-    Prism.highlightElement(highlightingCodeEl);
-}
+const storeKey = 'qeditor-content';
+const saved = localStorage.getItem(storeKey);
+if (saved != null) editor.value = saved;
+editor.dispatchEvent(new Event('input'));
+setInterval(() => localStorage.setItem(storeKey, editor.value), 2000);
