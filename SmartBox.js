@@ -110,25 +110,19 @@ class SmartBox extends HTMLElement {
     copyButton.classList.add("copy-button");
     copyButton.textContent = "Copy to Editor";
     copyButton.addEventListener("click", () => {
-      const editor = document.getElementById('editor');
-      let code = this.outputContent.textContent;
-      if (code.includes('```html')) {
-        const htmlMatch = code.match(/```html\n([\s\S]*?)```/);
-        if (htmlMatch) {
-          code = htmlMatch[1];
+      const editor = document.getElementById("editor");
+      const text = this.outputContent.textContent;
+      const blocks = [...text.matchAll(/```(html|javascript)\n([\s\S]*?)```/g)];
+      let code = "";
+      if (blocks.length) {
+        for (const [, lang, b] of blocks) {
+          code += lang === "javascript" ? `<script>\n${b}\n</script>\n` : b + "\n";
         }
+      } else {
+        code = text;
       }
-   
-      if (code.includes('```javascript')) {
-        const htmlMatch = code.match(/```javascript\n([\s\S]*?)```/);
-        if (htmlMatch) {
-          code = `<script>\n${htmlMatch[1]}\n</script>`;
-        }
-      }
-
-      editor.value = code;
-      // Trigger input event to update preview
-      editor.dispatchEvent(new Event('input'));
+      editor.value = code.trim();
+      editor.dispatchEvent(new Event("input"));
     });
     this.output.appendChild(copyButton);
 
