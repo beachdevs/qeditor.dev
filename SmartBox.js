@@ -177,7 +177,7 @@ class SmartBox extends HTMLElement {
     this.outputContent.textContent = "Thinking...";
     this.updateButtonVisibility();
 
-    text = 'When I ask you for code just give me the code. Do not include any other text. ' + text;
+    text = 'When I ask you for code just give me the code. Do not include any other text. If I ask you to write a custom element, give me the code for the custom element and the html tag for the custom element. Wrap ths' + text;
     const API_URL = `https://digplan-llm.deno.dev?prompt=${encodeURIComponent(text)}`;
 
     try {
@@ -199,15 +199,25 @@ class SmartBox extends HTMLElement {
       const data = await response.json();
 
       // Display the response or a "no response" message
-      if (data && data.gemini_response) {
+      let responseText = data?.response || data?.gemini_response;
+      if (responseText) {
+        // Remove thinking/reasoning tags and their content
+        responseText = responseText.replace(/<think>[\s\S]*?<\/think>/gi, '');
+        responseText = responseText.trim();
+        
         this.output.classList.remove("status-message");
-        this.outputContent.textContent = data.gemini_response;
+        this.outputContent.textContent = responseText;
+        this.updateButtonVisibility();
+        // Automatically copy to editor
+        if (this.copyButton) {
+          this.copyButton.click();
+        }
       } else {
         this.output.classList.remove("status-message");
         this.outputContent.textContent = "No response or unexpected format from API.";
         console.warn("Unexpected API response format:", data);
+        this.updateButtonVisibility();
       }
-      this.updateButtonVisibility();
     } catch (error) {
       // Handle network errors (e.g., no internet) or JSON parsing errors
       this.outputContent.textContent = "Failed to fetch response. Check your connection or the console for details.";
