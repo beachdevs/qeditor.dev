@@ -178,7 +178,7 @@ class SmartBox extends HTMLElement {
     this.updateButtonVisibility();
 
     text = 'When I ask you for code just give me the code. Do not include any other text. ' + text;
-    const API_URL = `https://digplan-gem.deno.dev?prompt=${encodeURIComponent(text)}`;
+    const API_URL = `https://digplan-llm.deno.dev?prompt=${encodeURIComponent(text)}`;
 
     try {
       // Make the API request
