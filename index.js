@@ -100,7 +100,41 @@ window.addEventListener("keydown", async e => {
 });
 
 const storeKey = 'qeditor-content';
-const saved = localStorage.getItem(storeKey);
-if (saved != null) editor.value = saved;
+
+// Load from URL first, then localStorage
+const urlParams = new URLSearchParams(window.location.search);
+const urlCode = urlParams.get('code');
+if (urlCode) {
+    try {
+        editor.value = atob(urlCode);
+    } catch (e) {
+        console.error('Failed to decode URL code:', e);
+        const saved = localStorage.getItem(storeKey);
+        if (saved != null) editor.value = saved;
+    }
+} else {
+    const saved = localStorage.getItem(storeKey);
+    if (saved != null) editor.value = saved;
+}
+
 editor.dispatchEvent(new Event('input'));
-setInterval(() => localStorage.setItem(storeKey, editor.value), 2000);
+
+// Update URL and localStorage when content changes
+let updateTimeout;
+editor.addEventListener('input', () => {
+    clearTimeout(updateTimeout);
+    updateTimeout = setTimeout(() => {
+        const code = editor.value;
+        localStorage.setItem(storeKey, code);
+        
+        // Update URL without page reload
+        const encoded = btoa(code);
+        const newUrl = new URL(window.location);
+        if (encoded) {
+            newUrl.searchParams.set('code', encoded);
+        } else {
+            newUrl.searchParams.delete('code');
+        }
+        window.history.replaceState({}, '', newUrl);
+    }, 1000);
+});
