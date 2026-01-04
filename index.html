@@ -14,7 +14,6 @@
 <script src="https://unpkg.com/prettier@2.8.8/parser-babel.js"></script>
 <script src="https://unpkg.com/prettier@2.8.8/parser-postcss.js"></script>
 <script src="https://unpkg.com/@prettier/plugin-php@0.21.0/standalone.js"></script>
-<script src="https://unpkg.com/enigmatic"></script>
 <script src="https://cdn.counter.dev/script.js" data-id="b776fd07-46c1-47fc-98f6-472310d54f95"
   data-utcoffset="-5"></script>
 <title>QEditor</title>
@@ -24,26 +23,50 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
 <link rel="stylesheet" href="style.css">
 
+<script>
+  window.$  = document.querySelector.bind(document)
+  window.$$ = document.querySelectorAll.bind(document)
+
+  window.custom = {
+    "hello-world": (data) => `Hello ${data}`,
+    "hello-world-2": {
+      prop: (data) => `${data} World`,
+      render: function(data) { 
+        return this.prop(data); 
+      }
+    }
+  }
+
+  window.state = new Proxy({}, {
+  set(obj, prop, value) {
+    obj[prop] = value
+    console.log('set', prop, value);
+    $$(`hello-world, hello-world-2`).forEach(el => {
+      console.log('setting', el.tagName);
+      const f = window.custom[el.tagName.toLowerCase()];
+      if(typeof f === 'function') {
+        el.innerHTML = f(value);
+      } else {
+        el.innerHTML = f.render(value);
+      }
+    });
+    return true
+  }
+})
+
+
+</script>
+
 <div class="container">
   <div class="panel" id="preview-panel">
-    <iframe id="preview-frame"></iframe>
+    <div id="preview-frame"></div>
   </div>
   <div class="panel" id="editor-container">
     <smart-box style="position: absolute; bottom: 20px; right: 20px; z-index: 1000;"></smart-box>
     <div id="editor-wrapper">
       <textarea id="editor" class="line-numbers" spellcheck="false" autocapitalize="off" autocorrect="off"
         placeholder="Type HTML and JavaScript here...">
-<script>
-  class MyElement extends HTMLElement {
-    connectedCallback() {
-      this.innerHTML = `<p>Hello from custom element!</p>`;
-    }
-  }
-  customElements.define('my-element', MyElement);
-</script>
-
-<my-element></my-element>
-                </textarea>
+      </textarea>
       <div class="format-hint">⌘⇧F format</div>
       <pre id="highlighting-pre" class="line-numbers"
         aria-hidden="true"><code class="language-html" id="highlighting-code"></code></pre>

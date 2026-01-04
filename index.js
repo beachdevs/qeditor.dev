@@ -5,36 +5,41 @@ const editorWrapper = document.getElementById('editor-wrapper'); // For scroll s
 const useBaseElementBtn = document.getElementById('use-base-element');
 
 function updatePreview(code) {
-    const iframeContent = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <script>
-                window.onerror = function(message, source, lineno, colno, error) {
-                    const errorDisplay = document.createElement('div');
-                    errorDisplay.style.color = 'red';
-                    errorDisplay.style.fontFamily = 'monospace';
-                    errorDisplay.style.whiteSpace = 'pre-wrap';
-                    errorDisplay.style.padding = '10px';
-                    errorDisplay.style.borderBottom = '1px solid red';
-                    errorDisplay.textContent = \`JavaScript Error:\\n\${message}\n(Line: \${lineno}, Column: \${colno})\`;
-                    if (document.body) {
-                        document.body.insertBefore(errorDisplay, document.body.firstChild);
-                    } else {
-                        document.documentElement.prepend(errorDisplay);
-                    }
-                    // So error is also visible in browser console for more details
-                    console.error("Error in preview:", message, "at", source, lineno, colno, error);
-                    return true; // Prevent default browser error handling in preview
-                };
-            <\/script>
-        </head>
-        <body>
-            ${code}
-        </body>
-        </html>
-    `;
-    previewFrame.srcdoc = iframeContent;
+    // Clear previous content
+    previewFrame.innerHTML = '';
+    
+    // Extract scripts from code
+    const scriptRegex = /<script(?:\s+[^>]*)?>([\s\S]*?)<\/script>/gi;
+    const scripts = [];
+    let htmlContent = code.replace(scriptRegex, (match, scriptContent) => {
+        scripts.push(scriptContent);
+        return '';
+    });
+    
+    // Set HTML content
+    previewFrame.innerHTML = htmlContent;
+    
+    // Execute scripts
+    scripts.forEach(scriptText => {
+        try {
+            const script = document.createElement('script');
+            script.textContent = scriptText;
+            previewFrame.appendChild(script);
+        } catch (e) {
+            const errorDisplay = document.createElement('div');
+            errorDisplay.style.cssText = 'color: red; font-family: monospace; white-space: pre-wrap; padding: 10px; border-bottom: 1px solid red;';
+            errorDisplay.textContent = `JavaScript Error:\n${e.message}`;
+            previewFrame.insertBefore(errorDisplay, previewFrame.firstChild);
+            console.error("Error in preview:", e);
+        }
+    });
+    
+    // Listen for state updates
+    previewFrame.addEventListener('state-update', (e) => {
+        const { prop, value } = e.detail;
+        previewFrame.querySelectorAll(`[data="${prop}"]`)
+            .forEach(el => el.textContent = value);
+    });
 }
 
 // Renamed from formatJS to formatCode for clarity
@@ -100,57 +105,107 @@ window.addEventListener("keydown", async e => {
 });
 
 const storeKey = 'qeditor-content';
-<<<<<<< HEAD
 
-// UTF-8 safe base64 encoding/decoding
-function base64Encode(str) {
-    return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (match, p1) => String.fromCharCode(parseInt(p1, 16))));
-}
-
-function base64Decode(str) {
-    return decodeURIComponent(atob(str).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
-}
-
-// Load from URL first, then localStorage
-const urlParams = new URLSearchParams(window.location.search);
-const urlCode = urlParams.get('code');
-if (urlCode) {
-    try {
-        editor.value = base64Decode(urlCode);
-    } catch (e) {
-        console.error('Failed to decode URL code:', e);
-        const saved = localStorage.getItem(storeKey);
-        if (saved != null) editor.value = saved;
+// Compression/decompression using CompressionStream API with fallback
+async function compressCode(str) {
+    if (typeof CompressionStream === 'undefined') {
+        // Fallback: simple base64 encoding
+        return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (match, p1) => String.fromCharCode(parseInt(p1, 16))));
     }
+    try {
+        const encoder = new TextEncoder();
+        const stream = new CompressionStream('gzip');
+        const writer = stream.writable.getWriter();
+        writer.write(encoder.encode(str));
+        writer.close();
+        const compressed = await new Response(stream.readable).arrayBuffer();
+        const base64 = btoa(String.fromCharCode(...new Uint8Array(compressed)));
+        return base64.replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+    } catch (e) {
+        console.error('Compression error:', e);
+        // Fallback
+        return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (match, p1) => String.fromCharCode(parseInt(p1, 16))));
+    }
+}
+
+async function decompressCode(compressed) {
+    try {
+        if (typeof DecompressionStream === 'undefined') {
+            // Fallback: simple base64 decoding
+            return decodeURIComponent(atob(compressed).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+        }
+        const base64 = compressed.replace(/-/g, '+').replace(/_/g, '/');
+        const binary = atob(base64);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) {
+            bytes[i] = binary.charCodeAt(i);
+        }
+        const stream = new DecompressionStream('gzip');
+        const writer = stream.writable.getWriter();
+        writer.write(bytes);
+        writer.close();
+        const decompressed = await new Response(stream.readable).arrayBuffer();
+        return new TextDecoder().decode(decompressed);
+    } catch (e) {
+        console.error('Decompression error:', e);
+        // Fallback
+        try {
+            return decodeURIComponent(atob(compressed).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+        } catch (e2) {
+            return null;
+        }
+    }
+}
+
+// Load from URL hash first, then localStorage
+const hash = window.location.hash.slice(1); // Remove #
+if (hash) {
+    decompressCode(hash).then(decompressed => {
+        if (decompressed) {
+            editor.value = decompressed;
+            editor.dispatchEvent(new Event('input'));
+        } else {
+            const saved = localStorage.getItem(storeKey);
+            if (saved != null) {
+                editor.value = saved;
+                editor.dispatchEvent(new Event('input'));
+            }
+        }
+    });
 } else {
     const saved = localStorage.getItem(storeKey);
-    if (saved != null) editor.value = saved;
+    if (saved != null) {
+        editor.value = saved;
+        editor.dispatchEvent(new Event('input'));
+    }
 }
-
-editor.dispatchEvent(new Event('input'));
 
 // Update URL and localStorage when content changes
 let updateTimeout;
 editor.addEventListener('input', () => {
     clearTimeout(updateTimeout);
-    updateTimeout = setTimeout(() => {
+    updateTimeout = setTimeout(async () => {
         const code = editor.value;
         localStorage.setItem(storeKey, code);
         
-        // Update URL without page reload
-        const encoded = base64Encode(code);
-        const newUrl = new URL(window.location);
-        if (encoded) {
-            newUrl.searchParams.set('code', encoded);
+        // Compress and update URL hash
+        const compressed = await compressCode(code);
+        if (compressed) {
+            window.location.hash = compressed;
         } else {
-            newUrl.searchParams.delete('code');
+            window.location.hash = '';
         }
-        window.history.replaceState({}, '', newUrl);
     }, 1000);
 });
-=======
-const saved = localStorage.getItem(storeKey);
-if (saved != null) editor.value = saved;
-editor.dispatchEvent(new Event('input'));
-setInterval(() => localStorage.setItem(storeKey, editor.value), 2000);
->>>>>>> parent of a229d53 (feat: Enhance editor content loading and saving with URL parameter support)
+
+// Listen for hash changes (back/forward navigation)
+window.addEventListener('hashchange', async () => {
+    const hash = window.location.hash.slice(1);
+    if (hash) {
+        const decompressed = await decompressCode(hash);
+        if (decompressed && decompressed !== editor.value) {
+            editor.value = decompressed;
+            editor.dispatchEvent(new Event('input'));
+        }
+    }
+});
