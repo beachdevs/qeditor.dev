@@ -101,12 +101,21 @@ window.addEventListener("keydown", async e => {
 
 const storeKey = 'qeditor-content';
 
+// UTF-8 safe base64 encoding/decoding
+function base64Encode(str) {
+    return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (match, p1) => String.fromCharCode(parseInt(p1, 16))));
+}
+
+function base64Decode(str) {
+    return decodeURIComponent(atob(str).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+}
+
 // Load from URL first, then localStorage
 const urlParams = new URLSearchParams(window.location.search);
 const urlCode = urlParams.get('code');
 if (urlCode) {
     try {
-        editor.value = atob(urlCode);
+        editor.value = base64Decode(urlCode);
     } catch (e) {
         console.error('Failed to decode URL code:', e);
         const saved = localStorage.getItem(storeKey);
@@ -128,7 +137,7 @@ editor.addEventListener('input', () => {
         localStorage.setItem(storeKey, code);
         
         // Update URL without page reload
-        const encoded = btoa(code);
+        const encoded = base64Encode(code);
         const newUrl = new URL(window.location);
         if (encoded) {
             newUrl.searchParams.set('code', encoded);
