@@ -100,6 +100,7 @@ window.addEventListener("keydown", async e => {
 });
 
 const storeKey = 'qeditor-content';
+<<<<<<< HEAD
 
 // UTF-8 safe base64 encoding/decoding
 function base64Encode(str) {
@@ -147,3 +148,9 @@ editor.addEventListener('input', () => {
         window.history.replaceState({}, '', newUrl);
     }, 1000);
 });
+=======
+const saved = localStorage.getItem(storeKey);
+if (saved != null) editor.value = saved;
+editor.dispatchEvent(new Event('input'));
+setInterval(() => localStorage.setItem(storeKey, editor.value), 2000);
+>>>>>>> parent of a229d53 (feat: Enhance editor content loading and saving with URL parameter support)
