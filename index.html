@@ -41,7 +41,7 @@
   set(obj, prop, value) {
     obj[prop] = value
     console.log('set', prop, value);
-    $$(`hello-world, hello-world-2`).forEach(el => {
+    $$(`[data="${prop}"]`).forEach(el => {
       console.log('setting', el.tagName);
       const f = window.custom[el.tagName.toLowerCase()];
       if(typeof f === 'function') {
