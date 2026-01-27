@@ -4,35 +4,69 @@ const previewFrame = document.getElementById('preview-frame');
 const editorWrapper = document.getElementById('editor-wrapper'); // For scroll sync
 const useBaseElementBtn = document.getElementById('use-base-element');
 
-function updatePreview(code) {
+async function updatePreview(code) {
     // Clear previous content
     previewFrame.innerHTML = '';
     
-    // Extract scripts from code
-    const scriptRegex = /<script(?:\s+[^>]*)?>([\s\S]*?)<\/script>/gi;
+    // Extract scripts from code - handle both inline and external scripts
+    const scriptRegex = /<script(\s+[^>]*)?>([\s\S]*?)<\/script>/gi;
     const scripts = [];
-    let htmlContent = code.replace(scriptRegex, (match, scriptContent) => {
-        scripts.push(scriptContent);
+    let htmlContent = code.replace(scriptRegex, (match, attributes, scriptContent) => {
+        scripts.push({ attributes: attributes || '', content: scriptContent || '' });
         return '';
     });
     
     // Set HTML content
     previewFrame.innerHTML = htmlContent;
     
-    // Execute scripts
-    scripts.forEach(scriptText => {
-        try {
-            const script = document.createElement('script');
-            script.textContent = scriptText;
-            previewFrame.appendChild(script);
-        } catch (e) {
-            const errorDisplay = document.createElement('div');
-            errorDisplay.style.cssText = 'color: red; font-family: monospace; white-space: pre-wrap; padding: 10px; border-bottom: 1px solid red;';
-            errorDisplay.textContent = `JavaScript Error:\n${e.message}`;
-            previewFrame.insertBefore(errorDisplay, previewFrame.firstChild);
-            console.error("Error in preview:", e);
+    // Execute scripts sequentially (wait for external scripts to load)
+    // Use setTimeout to ensure DOM is updated
+    await new Promise(resolve => setTimeout(resolve, 0));
+    
+    for (const { attributes, content } of scripts) {
+            try {
+                const script = document.createElement('script');
+                
+                // Parse attributes (like src, type, etc.)
+                let hasSrc = false;
+                if (attributes) {
+                    const srcMatch = attributes.match(/src=['"]([^'"]+)['"]/i);
+                    if (srcMatch) {
+                        script.src = srcMatch[1];
+                        hasSrc = true;
+                    }
+                    
+                    const typeMatch = attributes.match(/type=['"]([^'"]+)['"]/i);
+                    if (typeMatch) {
+                        script.type = typeMatch[1];
+                    }
+                }
+                
+                // Set content if it's an inline script
+                if (content.trim()) {
+                    script.textContent = content;
+                }
+                
+                // Wait for external scripts to load before continuing
+                if (hasSrc) {
+                    await new Promise((resolve, reject) => {
+                        script.onload = resolve;
+                        script.onerror = () => reject(new Error(`Failed to load script: ${script.src}`));
+                        previewFrame.appendChild(script);
+                    });
+                } else {
+                    previewFrame.appendChild(script);
+                    // Small delay to ensure inline scripts execute
+                    await new Promise(resolve => setTimeout(resolve, 0));
+                }
+            } catch (e) {
+                const errorDisplay = document.createElement('div');
+                errorDisplay.style.cssText = 'color: red; font-family: monospace; white-space: pre-wrap; padding: 10px; border-bottom: 1px solid red;';
+                errorDisplay.textContent = `JavaScript Error:\n${e.message}`;
+                previewFrame.insertBefore(errorDisplay, previewFrame.firstChild);
+                console.error("Error in preview:", e);
+            }
         }
-    });
     
     // Listen for state updates
     previewFrame.addEventListener('state-update', (e) => {
@@ -157,7 +191,14 @@ async function decompressCode(compressed) {
     }
 }
 
-// Load from URL hash first, then localStorage
+// Default editor content
+const defaultContent = `<script src='https://unpkg.com/enigmatic'></script>
+<script>
+  custom.hw = ()=>'Hello world!'
+</script>
+<hw></hw>`;
+
+// Load from URL hash first, then localStorage, then default
 const hash = window.location.hash.slice(1); // Remove #
 if (hash) {
     decompressCode(hash).then(decompressed => {
@@ -169,6 +210,9 @@ if (hash) {
             if (saved != null) {
                 editor.value = saved;
                 editor.dispatchEvent(new Event('input'));
+            } else {
+                editor.value = defaultContent;
+                editor.dispatchEvent(new Event('input'));
             }
         }
     });
@@ -176,6 +220,9 @@ if (hash) {
     const saved = localStorage.getItem(storeKey);
     if (saved != null) {
         editor.value = saved;
+        editor.dispatchEvent(new Event('input'));
+    } else {
+        editor.value = defaultContent;
         editor.dispatchEvent(new Event('input'));
     }
 }

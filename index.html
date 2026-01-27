@@ -68,6 +68,7 @@
         placeholder="Type HTML and JavaScript here...">
       </textarea>
       <div class="format-hint">⌘⇧F format</div>
+      <button id="reset-btn" class="reset-button" title="Clear localStorage and reload">Reset</button>
       <pre id="highlighting-pre" class="line-numbers"
         aria-hidden="true"><code class="language-html" id="highlighting-code"></code></pre>
     </div>
@@ -85,5 +86,14 @@
     if (new URLSearchParams(window.location.search).has('nosmartbox')) {
       smartBox.style.display = 'none';
     }
+    
+    // Reset button functionality
+    const resetBtn = document.getElementById('reset-btn');
+    resetBtn.addEventListener('click', () => {
+      if (confirm('Clear all saved data and reload the page?')) {
+        localStorage.clear();
+        window.location.href = window.location.origin + window.location.pathname;
+      }
+    });
   });
 </script>
