@@ -194,9 +194,10 @@ async function decompressCode(compressed) {
 // Default editor content
 const defaultContent = `<script src='https://unpkg.com/enigmatic'></script>
 <script>
-  custom.hw = ()=>'Hello world!'
+  custom.hw = (name)=>\`Hello ${name}\`
+  state.name = "World"
 </script>
-<hw></hw>`;
+<hw data="name"></hw>`;
 
 // Load from URL hash first, then localStorage, then default
 const hash = window.location.hash.slice(1); // Remove #
