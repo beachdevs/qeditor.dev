@@ -177,7 +177,17 @@ class SmartBox extends HTMLElement {
     this.outputContent.textContent = "Thinking...";
     this.updateButtonVisibility();
 
-    text = 'When I ask you for code just give me the code. Do not include any other text. If I ask you to write a custom element, give me the code for the custom element and the html tag for the custom element. Wrap ths' + text;
+    // Instructions for LLM - properly escaped
+    const instructions = 'INSTRUCTIONS: When users request web components, use the window.custom system. ' +
+      'Define components in window.custom object using kebab-case names. ' +
+      'Components can be functions: window.custom["my-component"] = (data) => "<div>HTML</div>", ' +
+      'or objects with render method: window.custom["my-component"] = { render: function(data) { return "<div>HTML</div>"; } }, ' +
+      'or async functions for data fetching. ' +
+      'Components automatically render when DOM loads. ' +
+      'Use data="key" attribute to make components reactive to window.state[key] changes. ' +
+      'Always return HTML strings. See examples at https://unpkg.com/enigmatic/public/custom.js';
+    
+    text = instructions + ' ' + text;
     const API_URL = `https://digplan-llm.deno.dev?prompt=${encodeURIComponent(text)}`;
 
     try {
