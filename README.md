@@ -1,6 +1,11 @@
-# QEditor
+<h1 align="center">QEditor Playground</h1>
+<p align="center"><strong>Code it. Preview it. Share it.</strong></p>
 
 QEditor is a browser-based HTML/CSS/JS playground with live preview, syntax highlighting, URL sharing, and an AI SmartBox assistant.
+
+Live site: https://qeditor.dev
+
+![QEditor screenshot](qeditor.jpg)
 
 ## Features
 
