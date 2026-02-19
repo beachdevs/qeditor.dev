@@ -7,7 +7,7 @@
 <meta name="author" content="Web Components Developer">
 <meta name="application-name" content="Custom Elements Playground">
 <link rel="icon" type="image/svg+xml"
-  href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNiAxNiI+PHBhdGggZD0iTTIgMTEuNVYxNGgyLjVsNy4xLTcuMS0yLjUtMi41TDIgMTEuNXpNMTMuNyA1LjNhMSAxIDAgMCAwIDAtMS40bC0xLjYtMS42YTEgMSAwIDAgMC0xLjQgMGwtMSAxIDMgMyAxLTF6IiBmaWxsPSJnb2xkIi8+PC9zdmc+">
+  href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjMjJkM2VlIi8+CiAgICAgIDxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iIzhiNWNmNiIvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICA8L2RlZnM+CiAgPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTQiIGZpbGw9IiMwYjEyMjAiLz4KICA8cmVjdCB4PSI0IiB5PSI0IiB3aWR0aD0iNTYiIGhlaWdodD0iNTYiIHJ4PSIxMiIgZmlsbD0idXJsKCNnKSIgb3BhY2l0eT0iMC4yNiIvPgogIDxwYXRoIGQ9Ik0xOSAyMmwxMCAxMC0xMCAxMCIgc3Ryb2tlPSIjN2RkM2ZjIiBzdHJva2Utd2lkdGg9IjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgZmlsbD0ibm9uZSIvPgogIDxyZWN0IHg9IjMzIiB5PSI0MCIgd2lkdGg9IjE0IiBoZWlnaHQ9IjQiIHJ4PSIyIiBmaWxsPSIjYTc4YmZhIi8+CiAgPGNpcmNsZSBjeD0iNDkiIGN5PSIxNyIgcj0iNiIgZmlsbD0iIzIyZDNlZSIvPgo8L3N2Zz4K">
 <script type="module" src="SmartBox.js"></script>
 <script src="https://unpkg.com/prettier@2.8.8/standalone.js"></script>
 <script src="https://unpkg.com/prettier@2.8.8/parser-html.js"></script>
@@ -16,8 +16,8 @@
 <script src="https://unpkg.com/@prettier/plugin-php@0.21.0/standalone.js"></script>
 <script src="https://cdn.counter.dev/script.js" data-id="b776fd07-46c1-47fc-98f6-472310d54f95"
   data-utcoffset="-5"></script>
-<title>QEditor v0.0.1</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+<title>QEditor</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism-themes/1.9.0/prism-vsc-dark-plus.min.css">
 <link rel="stylesheet"
   href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
@@ -43,21 +43,25 @@
 
 <div class="container">
   <div class="panel" id="preview-panel">
-    <div id="preview-frame"></div>
+    <iframe id="preview-frame" title="Live preview" sandbox="allow-scripts" referrerpolicy="no-referrer"></iframe>
   </div>
   <div class="panel" id="editor-container">
-    <smart-box style="position: absolute; bottom: 20px; right: 20px; z-index: 1000;"></smart-box>
     <div id="editor-wrapper">
-      <textarea id="editor" class="line-numbers" spellcheck="false" autocapitalize="off" autocorrect="off"
+      <textarea id="editor" class="line-numbers" spellcheck="false" autocapitalize="off" autocorrect="off" wrap="off"
         placeholder="Type HTML and JavaScript here...">
       </textarea>
       <div class="format-hint">⌘⇧F format</div>
-      <button id="reset-btn" class="reset-button" title="Clear localStorage and reload">Reset</button>
+      <button id="reset-btn" class="reset-button" data-reset="true" title="Clear localStorage and reload">Reset</button>
       <pre id="highlighting-pre" class="line-numbers"
         aria-hidden="true"><code class="language-html" id="highlighting-code"></code></pre>
     </div>
   </div>
 </div>
+<smart-box></smart-box>
+<button id="global-reset-btn" class="global-reset-button" data-reset="true" type="button" title="Clear localStorage and reload">Reset</button>
+<button id="toggle-code-btn" class="toggle-code-button" type="button" aria-controls="editor-container" aria-expanded="true">Hide Code</button>
+<div class="share-tip">Tip: Copy the URL to save and send to someone.</div>
+<footer class="site-footer">c 2026 sunset beach labs v0.2.0</footer>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
 <script
@@ -71,13 +75,15 @@
       smartBox.style.display = 'none';
     }
     
-    // Reset button functionality
-    const resetBtn = document.getElementById('reset-btn');
-    resetBtn.addEventListener('click', () => {
-      if (confirm('Clear all saved data and reload the page?')) {
-        localStorage.clear();
-        window.location.href = window.location.origin + window.location.pathname;
-      }
+    // Reset buttons functionality
+    const resetButtons = document.querySelectorAll('[data-reset="true"]');
+    resetButtons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        if (confirm('Clear all saved data and reload the page?')) {
+          localStorage.clear();
+          window.location.href = window.location.origin + window.location.pathname;
+        }
+      });
     });
   });
 </script>

@@ -1,20 +1,35 @@
 
+:root {
+    --vscode-bg: #1e1e1e;
+    --vscode-side-bg: #252526;
+    --vscode-border: #3c3c3c;
+    --vscode-fg: #d4d4d4;
+    --vscode-muted: #858585;
+    --vscode-button-bg: #0e639c;
+    --vscode-button-hover: #1177bb;
+    --vscode-button-active: #0b4f7c;
+    --vscode-caret: #ffffff;
+}
+
 body, html {
     margin: 0;
     padding: 0;
     height: 100%;
-    font-family: sans-serif;
+    font-family: 'Segoe UI', 'Segoe WPC', Tahoma, sans-serif;
     overflow: hidden;
+    background: var(--vscode-bg);
+    color: var(--vscode-fg);
 }
 .container {
     display: flex;
     height: 100vh;
+    background: var(--vscode-bg);
 }
 smart-box {
-    position: absolute;
-    z-index: 9000;
-    bottom: 100px;
-    right: 70px;
+    position: fixed;
+    z-index: 9600;
+    bottom: 20px;
+    right: 20px;
 }
 .panel {
     flex: 1;
@@ -22,12 +37,15 @@ smart-box {
     overflow: hidden; /* Manage scrolling inside children */
     box-sizing: border-box;
     position: relative;
+    background: var(--vscode-side-bg);
+    color: var(--vscode-fg);
 }
 #editor-wrapper {
     width: 100%;
     height: 100%;
     position: relative;
-    border-left: 1px solid #444; /* Darker border for dark theme */
+    border-left: 1px solid var(--vscode-border);
+    background: var(--vscode-bg);
 }
 #editor, #highlighting-pre {
     margin: 0;
@@ -52,9 +70,16 @@ smart-box {
     z-index: 1;
     background: transparent;
     color: transparent; /* Make actual text transparent */
-    caret-color: #ccc; /* Visible caret matching theme */
+    caret-color: var(--vscode-caret);
     border: none;
     resize: none;
+}
+#editor-wrapper.typing #editor {
+    color: var(--vscode-fg);
+    caret-color: var(--vscode-caret);
+}
+#editor-wrapper.typing #highlighting-pre {
+    visibility: hidden;
 }
 #highlighting-pre { /* Preformatted block for Prism.js */
     position: absolute;
@@ -62,26 +87,93 @@ smart-box {
     left: 0;
     z-index: 0;
     pointer-events: none; /* Allow clicks to go through to textarea */
-    color: #ccc; /* Default text color for pre */
-    background: #2d2d2d; /* Matches Prism theme background */
+    color: var(--vscode-fg);
+    background: var(--vscode-bg);
     border: none;
 }
 #highlighting-pre code {
     display: block;
 }
+#highlighting-pre.line-numbers {
+    padding-left: 3.8em;
+}
+.line-numbers .line-numbers-rows {
+    border-right: 1px solid var(--vscode-border);
+}
+.line-numbers-rows > span:before {
+    color: var(--vscode-muted);
+}
+#highlighting-pre .token {
+    /* Keep token width stable in Chrome by avoiding style/weight shifts. */
+    font-style: normal !important;
+    font-weight: normal !important;
+}
 #preview-frame {
     width: 100%;
     height: 100%;
-    overflow: auto;
-    background: white;
-    padding: 20px;
+    display: block;
+    overflow: hidden;
+    background: var(--vscode-side-bg);
+    color: var(--vscode-fg);
+    padding: 0;
     box-sizing: border-box;
+    border: none;
+}
+.toggle-code-button {
+    position: fixed;
+    top: 10px;
+    right: 12px;
+    z-index: 9550;
+    padding: 6px 10px;
+    background: var(--vscode-button-bg);
+    color: #fff;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    font-size: 12px;
+    font-family: 'Segoe UI', 'Segoe WPC', Tahoma, sans-serif;
+    cursor: pointer;
+}
+.toggle-code-button:hover {
+    background: var(--vscode-button-hover);
+}
+.toggle-code-button:active {
+    background: var(--vscode-button-active);
+}
+.global-reset-button {
+    position: fixed;
+    top: 10px;
+    right: 96px;
+    z-index: 9550;
+    padding: 6px 10px;
+    background: var(--vscode-button-bg);
+    color: #fff;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    font-size: 12px;
+    font-family: 'Segoe UI', 'Segoe WPC', Tahoma, sans-serif;
+    cursor: pointer;
+}
+.global-reset-button:hover {
+    background: var(--vscode-button-hover);
+}
+.global-reset-button:active {
+    background: var(--vscode-button-active);
+}
+body.code-frame-hidden #editor-container {
+    display: none;
+}
+body.code-frame-hidden #preview-panel {
+    flex: 1 1 100%;
+    width: 100%;
+}
+body.code-frame-hidden .global-reset-button {
+    right: 12px;
 }
 .format-hint {
     position: absolute;
     bottom: 30px;
     left: 10px;
-    color: #cbcbcb;
+    color: var(--vscode-muted);
     font-size: 12px;
     font-family: sans-serif;
     pointer-events: none;
@@ -93,18 +185,78 @@ smart-box {
     right: 10px;
     z-index: 1000;
     padding: 6px 12px;
-    background-color: #555;
-    color: white;
-    border: none;
+    background-color: var(--vscode-button-bg);
+    color: #ffffff;
+    border: 1px solid transparent;
     border-radius: 4px;
     cursor: pointer;
     font-size: 12px;
-    font-family: sans-serif;
+    font-family: 'Segoe UI', 'Segoe WPC', Tahoma, sans-serif;
     transition: background-color 0.2s;
 }
 .reset-button:hover {
-    background-color: #666;
+    background-color: var(--vscode-button-hover);
 }
 .reset-button:active {
-    background-color: #444;
+    background-color: var(--vscode-button-active);
+}
+.site-footer {
+    position: fixed;
+    left: 12px;
+    bottom: 10px;
+    transform: none;
+    color: var(--vscode-muted);
+    font-size: 9px;
+    letter-spacing: 0.03em;
+    opacity: 0.8;
+    z-index: 9500;
+    pointer-events: none;
+    user-select: none;
+}
+.share-tip {
+    position: fixed;
+    left: 12px;
+    top: 6px;
+    color: var(--vscode-muted);
+    font-size: 10px;
+    letter-spacing: 0.01em;
+    opacity: 0.9;
+    z-index: 9500;
+    pointer-events: none;
+    user-select: none;
+}
+
+@media (max-width: 820px) {
+    #editor-container {
+        display: none;
+    }
+    #preview-panel {
+        flex: 1 1 100%;
+        width: 100%;
+    }
+    #preview-frame {
+        border: none;
+        padding: 0;
+    }
+    smart-box {
+        right: 10px;
+        bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+        width: min(94vw, 420px);
+        max-width: 94vw;
+    }
+    .site-footer {
+        display: none;
+    }
+    .toggle-code-button {
+        display: none;
+    }
+    .global-reset-button {
+        right: 10px;
+        top: calc(10px + env(safe-area-inset-top, 0px));
+    }
+    .share-tip {
+        left: 10px;
+        top: calc(6px + env(safe-area-inset-top, 0px));
+        font-size: 11px;
+    }
 }
