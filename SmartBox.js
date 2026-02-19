@@ -566,7 +566,7 @@ class SmartBox extends HTMLElement {
       "- If forms or user input are requested, include validation and user feedback."
     ].join("\\n");
     
-    const API_URL = "https://openrouter.ai/api/v1/chat/completions";
+    const API_URL = "https://digplan.app/llm/chat";
     const requestBody = {
       model: "openrouter/aurora-alpha",
       temperature: 0.2,
@@ -577,14 +577,10 @@ class SmartBox extends HTMLElement {
     };
 
     try {
-      const API_KEY = "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";
       const response = await fetch(API_URL, {
         method: "POST",
         headers: {
-          'Authorization': `Bearer ${API_KEY}`,
-          'Content-Type': 'application/json',
-          'HTTP-Referer': window.location.origin,
-          'X-Title': 'QEditor'
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(requestBody)
       });

@@ -1,47 +1,60 @@
 # QEditor
 
-**QEditor** is a live HTML/JS editor designed for building and testing web components and interactive demos in real time.
+QEditor is a browser-based HTML/CSS/JS playground with live preview, syntax highlighting, URL sharing, and an AI SmartBox assistant.
 
-## ✨ Features
+## Features
 
-- **Live Preview** - Real-time preview using divs (no iframes)
-- **Syntax Highlighting** - Prism.js with line numbers
-- **Code Formatting** - Prettier integration (⌘⇧F / Ctrl+Shift+F)
-- **AI Assistant** - SmartBox component for AI-powered code generation
-- **Shareable URLs** - Compressed code stored in URL hash for easy sharing
-- **Local Storage** - Auto-saves your work
-- **Enigmatic Support** - Built-in support for the enigmatic library
-- **Zero Build Steps** - Runs entirely in the browser
+- Live HTML/CSS/JS editing with Prism line-number highlighting
+- Keyboard formatting with Prettier (`Cmd+Shift+F` / `Ctrl+Shift+F`)
+- Shareable URLs (code is compressed into `location.hash`)
+- Auto-save to `localStorage`
+- SmartBox AI generation + one-click copy into editor
+- SmartBox response panel `Show/Hide` toggle
+- `Hide Code` / `Show Code` toggle for the editor panel
+- Reset controls to clear saved state and reload
+- Mobile layout: preview + SmartBox only
 
-## 🚀 Getting Started
+## Security Model (Preview)
 
-The editor comes with a default example using enigmatic:
+User code is rendered in a sandboxed iframe (`allow-scripts`) with a restrictive CSP.  
+This isolates preview execution from the main app UI and reduces injection risk against the editor shell.
 
-```html
-<script src='https://unpkg.com/enigmatic'></script>
-<script>
-  custom.hw = (name)=>`Hello ${name}`
-  state.name = "World"
-</script>
-<hw data="name"></hw>
+## Default Starter
+
+The default starter is a Simon-style memory game (HTML/CSS/JS) so new sessions open with a playable demo.
+
+## Usage
+
+- Type code in the editor panel
+- Format with `Cmd+Shift+F` / `Ctrl+Shift+F`
+- Toggle code panel using `Hide Code` / `Show Code`
+- Reset with the `Reset` button
+- Share work by copying the URL
+
+## SmartBox
+
+SmartBox sends prompts to `POST https://digplan.app/llm/chat` and auto-generates embeddable code blocks for the editor.
+
+Current model:
+- `openrouter/aurora-alpha`
+
+Behavior:
+- Starts with animated prompt suggestions
+- Keeps response collapsed by default
+- Lets you manually expand responses with `Show`
+- Normalizes/sanitizes generated output before inserting into the editor
+
+## Local Development
+
+No build step is required. Serve the folder statically, for example:
+
+```bash
+python3 -m http.server 4173
 ```
 
-## 📝 Usage
+Then open `http://127.0.0.1:4173`.
 
-- **Format Code**: Press `⌘⇧F` (Mac) or `Ctrl+Shift+F` (Windows/Linux)
-- **Reset**: Click the "Reset" button to clear localStorage and reload
-- **Share**: Copy the URL - your code is automatically compressed and stored in the hash
-- **AI Help**: Use the SmartBox in the bottom-right corner for AI assistance
+## Notes
 
-## 🔗 URL Sharing
-
-Your code is automatically compressed and stored in the URL hash. Share the URL to share your code!
-
-Example: `https://yoursite.com/#compressedcode`
-
-## 🛠️ Technologies
-
-- Prism.js for syntax highlighting
-- Prettier for code formatting
-- Enigmatic for component framework
-- CompressionStream API for URL compression
+- The app is intentionally client-side and stateful via URL hash + localStorage.
+- If favicon, CSS, or scripts appear stale, hard refresh to bypass cache.
