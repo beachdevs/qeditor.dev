@@ -1,11 +1,11 @@
-<h1 align="center">QEditor Playground</h1>
+<h1 align="center">CodeSprout</h1>
 <p align="center"><strong>Code it. Preview it. Share it.</strong></p>
 
-QEditor is a browser-based HTML/CSS/JS playground with live preview, syntax highlighting, URL sharing, and an AI SmartBox assistant.
+CodeSprout is a browser-based HTML/CSS/JS playground with live preview, syntax highlighting, URL sharing, and an AI SmartBox assistant.
 
 Live site: https://qeditor.dev
 
-![QEditor screenshot](qeditor.jpg)
+![CodeSprout screenshot](qeditor.jpg)
 
 ## Features
 
@@ -37,11 +37,6 @@ The default starter is a Simon-style memory game (HTML/CSS/JS) so new sessions o
 - Share work by copying the URL
 
 ## SmartBox
-
-SmartBox sends prompts to `POST https://digplan.app/llm/chat` and auto-generates embeddable code blocks for the editor.
-
-Current model:
-- `openrouter/aurora-alpha`
 
 Behavior:
 - Starts with animated prompt suggestions
