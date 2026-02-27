@@ -60,6 +60,18 @@ smart-box {
     white-space: pre;
     word-wrap: normal;
 }
+#editor,
+#highlighting-pre,
+#highlighting-pre code {
+    font-family: Menlo, Consolas, Monaco, 'Courier New', monospace !important;
+    font-size: 14px !important;
+    line-height: 21px !important; /* Keep caret row height locked to Prism rows. */
+    letter-spacing: 0;
+    font-variant-ligatures: none;
+    font-feature-settings: "liga" 0, "calt" 0;
+    tab-size: 2;
+    -moz-tab-size: 2;
+}
 #editor.line-numbers, #highlighting-pre.line-numbers {
     padding-left: 3.8em;
 }
@@ -70,12 +82,20 @@ smart-box {
     z-index: 1;
     background: transparent;
     color: transparent; /* Make actual text transparent */
+    -webkit-text-fill-color: transparent;
     caret-color: var(--vscode-caret);
     border: none;
+    outline: none;
     resize: none;
+}
+#editor:focus,
+#editor:focus-visible {
+    outline: none;
+    box-shadow: none;
 }
 #editor-wrapper.typing #editor {
     color: var(--vscode-fg);
+    -webkit-text-fill-color: var(--vscode-fg);
     caret-color: var(--vscode-caret);
 }
 #editor-wrapper.typing #highlighting-pre {

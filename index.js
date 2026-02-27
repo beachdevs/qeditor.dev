@@ -45,36 +45,68 @@ function sanitizePreviewHead(headHtml = '') {
     return template.innerHTML;
 }
 
+function extractMarkdownBody(source = '') {
+    const normalized = source.replace(/^\uFEFF/, '');
+    const firstLineBreak = normalized.search(/\r?\n/);
+    const firstLine = firstLineBreak === -1 ? normalized : normalized.slice(0, firstLineBreak);
+    if (firstLine.trim().toLowerCase() !== '<!-- markdown -->') return null;
+    if (firstLineBreak === -1) return '';
+    return normalized.slice(firstLineBreak).replace(/^\r?\n/, '');
+}
+
 function buildPreviewSrcdoc(code) {
     const source = code || '';
-    const mdMatch = source.match(/^\uFEFF?[\t ]*<!--\s*markdown\s*-->\r?\n?/i);
-    if (mdMatch) {
-        const mdBody = source.slice(mdMatch[0].length).replace(/<\/script/gi, '<\\/script');
+    const markdownBody = extractMarkdownBody(source);
+    if (markdownBody !== null) {
+        const mdBody = markdownBody.replace(/<\/script/gi, '<\\/script');
         return `<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta http-equiv="Content-Security-Policy" content="${PREVIEW_CSP}">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css/github-markdown.min.css">
   <style>
     html, body {
       margin: 0;
-      padding: 20px;
+      padding: 0;
       min-height: 100%;
       box-sizing: border-box;
       background: #252526;
       color: #d4d4d4;
       font-family: 'Segoe UI', Tahoma, sans-serif;
     }
+    .markdown-body {
+      box-sizing: border-box;
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 24px;
+      background: transparent;
+      color: #d4d4d4;
+    }
+    .markdown-body pre,
+    .markdown-body code {
+      background: rgba(255, 255, 255, 0.08);
+    }
+    .markdown-body h1,
+    .markdown-body h2 {
+      border-bottom: none;
+    }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
-  <div id="app"></div>
+  <article class="markdown-body" id="app"></article>
   <script type="text/plain" id="md-src">${mdBody}</script>
   <script>
     const md = document.getElementById('md-src').textContent;
-    document.getElementById('app').innerHTML = marked.parse(md);
+    const parser = window.marked;
+    const app = document.getElementById('app');
+    if (parser) {
+      app.innerHTML = parser.parse(md);
+    } else {
+      app.textContent = md;
+    }
   </script>
 </body>
 </html>`;
@@ -112,10 +144,25 @@ ${bodyHtml}
 </html>`;
 }
 
-function updatePreview(code) {
-    // Run untrusted editor code inside an isolated, sandboxed iframe.
-    previewFrame.srcdoc = buildPreviewSrcdoc(code);
+function updatePreview(code, { immediate = false } = {}) {
+    const nextSrcdoc = buildPreviewSrcdoc(code);
+    const commit = () => {
+        if (nextSrcdoc === updatePreview.lastSrcdoc) return;
+        // Run untrusted editor code inside an isolated, sandboxed iframe.
+        previewFrame.srcdoc = nextSrcdoc;
+        updatePreview.lastSrcdoc = nextSrcdoc;
+    };
+
+    clearTimeout(updatePreview.timer);
+    if (immediate) {
+        commit();
+        return;
+    }
+    // Prevent blank/flicker while typing by batching iframe writes.
+    updatePreview.timer = setTimeout(commit, 90);
 }
+updatePreview.timer = null;
+updatePreview.lastSrcdoc = '';
 
 async function formatCode(code) {
     try {
@@ -530,6 +577,7 @@ const defaultContent = `<style>
 
 function setContent(val) {
     editor.value = val;
+    updatePreview(val, { immediate: true });
     editor.dispatchEvent(new Event('input'));
 }
 const hash = window.location.hash.slice(1);
