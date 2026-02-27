@@ -82,6 +82,25 @@ smart-box {
     resize: none;
     outline: none;
 }
+body.ace-unavailable #editor {
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 1;
+    pointer-events: auto;
+    border: none;
+    padding: 14px;
+    box-sizing: border-box;
+    resize: none;
+    background: var(--vscode-bg);
+    color: var(--vscode-fg);
+    font-family: 'JetBrains Mono', 'SFMono-Regular', Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+    font-size: 12px;
+    line-height: 1.55;
+}
+body.ace-unavailable #editor-view {
+    display: none;
+}
 #editor-container:focus-within,
 #editor-wrapper:focus-within {
     outline: none;

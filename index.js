@@ -28,6 +28,7 @@ const aceEditor = window.ace && editorView
 if (aceEditor) {
     aceEditor.session.setUseWorker(false);
 }
+document.body.classList.toggle('ace-unavailable', !aceEditor);
 
 const CODE_FRAME_HIDDEN_KEY = 'qeditor-code-frame-hidden';
 
@@ -311,6 +312,12 @@ function fromBase64(str) {
     return decodeURIComponent(atob(str).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
 }
 
+function toPaddedBase64(str) {
+    const normalized = (str || '').replace(/-/g, '+').replace(/_/g, '/');
+    const paddingNeeded = (4 - (normalized.length % 4)) % 4;
+    return normalized + '='.repeat(paddingNeeded);
+}
+
 let updateTimeout;
 let syncingFromAce = false;
 let syncingToAce = false;
@@ -384,10 +391,10 @@ async function compressCode(str) {
 
 async function decompressCode(compressed) {
     if (typeof DecompressionStream === 'undefined') {
-        try { return fromBase64(compressed); } catch { return null; }
+        try { return fromBase64(toPaddedBase64(compressed)); } catch { return null; }
     }
     try {
-        const base64 = compressed.replace(/-/g, '+').replace(/_/g, '/');
+        const base64 = toPaddedBase64(compressed);
         const binary = atob(base64);
         const bytes = new Uint8Array(binary.length);
         for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
