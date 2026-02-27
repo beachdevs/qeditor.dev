@@ -48,21 +48,49 @@
   </div>
   <div class="panel" id="editor-container">
     <div id="editor-wrapper">
-      <div class="editor-toolbar" aria-hidden="true"><code>&lt;!-- markdown --&gt;</code> for md document</div>
       <textarea id="editor" spellcheck="false" autocapitalize="off" autocorrect="off" wrap="off"
         placeholder="Type HTML and JavaScript here...">
       </textarea>
       <div id="editor-view" aria-label="Code editor"></div>
       <div class="format-hint">⌘⇧F format</div>
-      <button id="reset-btn" class="reset-button" data-reset="true" title="Clear localStorage and reload">Reset</button>
     </div>
   </div>
 </div>
+<div class="floating-toolbar" aria-hidden="true">
+  <div class="floating-toolbar__left"><code>&lt;!-- markdown --&gt;</code> for md document</div>
+  <div class="floating-toolbar__right">
+    <button id="global-reset-btn" class="floating-toolbar__button" data-reset="true" type="button" title="Clear localStorage and reload">Reset</button>
+    <button id="toggle-code-btn" class="floating-toolbar__button" type="button" aria-controls="editor-container" aria-expanded="true">Hide Code</button>
+    <button id="toggle-assistant-btn" class="floating-toolbar__button" type="button" aria-expanded="true">Assistant</button>
+    <button id="toggle-terminal-btn" class="floating-toolbar__button" type="button" aria-expanded="false" aria-controls="terminal-panel">Terminal</button>
+  </div>
+</div>
 <smart-box></smart-box>
-<div class="top-controls">
-  <button id="global-reset-btn" class="global-reset-button" data-reset="true" type="button" title="Clear localStorage and reload">Reset</button>
-  <button id="toggle-code-btn" class="toggle-code-button" type="button" aria-controls="editor-container" aria-expanded="true">Hide Code</button>
-  <button id="toggle-assistant-btn" class="toggle-assistant-button" type="button" aria-expanded="true">Hide Assistant</button>
+<div id="terminal-panel" class="terminal-panel" aria-hidden="true">
+  <div class="terminal-actions-float">
+    <button id="terminal-fullscreen-btn" class="terminal-float-btn" type="button" aria-pressed="false" title="Full screen">
+      <i class="fa-solid fa-expand"></i>
+    </button>
+    <button id="terminal-close-btn" class="terminal-float-btn" type="button" title="Close">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+  </div>
+  <div id="terminal-fallback" class="terminal-fallback" aria-hidden="true">
+    <div class="terminal-fallback__card">
+      <div class="terminal-fallback__title">Terminal not reachable</div>
+      <div class="terminal-fallback__text">
+        You can run a terminal on screen to a running container on your machine.
+      </div>
+      <a class="terminal-fallback__link" href="container.zip" download>Download container.zip</a>
+    </div>
+  </div>
+  <iframe
+    id="terminal-frame"
+    title="Local Terminal"
+    src="about:blank"
+    data-src="http://localhost:7681"
+    referrerpolicy="no-referrer"
+  ></iframe>
 </div>
 <div class="share-tip">Tip: Copy the URL to save and send to someone.</div>
 <footer class="site-footer">c 2026 sunset beach labs v0.2.0</footer>
@@ -80,7 +108,7 @@
       if (!smartBox) return;
       smartBox.style.display = hidden ? 'none' : '';
       if (!toggleAssistantBtn) return;
-      toggleAssistantBtn.textContent = hidden ? 'Show Assistant' : 'Hide Assistant';
+      toggleAssistantBtn.textContent = 'Assistant';
       toggleAssistantBtn.setAttribute('aria-expanded', String(!hidden));
     }
 
@@ -110,5 +138,107 @@
         }
       });
     });
+
+    const terminalPanel = document.getElementById('terminal-panel');
+    const toggleTerminalBtn = document.getElementById('toggle-terminal-btn');
+    const terminalCloseBtn = document.getElementById('terminal-close-btn');
+    const terminalFullscreenBtn = document.getElementById('terminal-fullscreen-btn');
+    const terminalFrame = document.getElementById('terminal-frame');
+    const terminalFallback = document.getElementById('terminal-fallback');
+    let terminalFallbackTimer = null;
+
+    function setTerminalOpen(open) {
+      if (!terminalPanel || !toggleTerminalBtn) return;
+      terminalPanel.classList.toggle('is-open', open);
+      terminalPanel.setAttribute('aria-hidden', String(!open));
+      toggleTerminalBtn.setAttribute('aria-expanded', String(open));
+      toggleTerminalBtn.textContent = 'Terminal';
+      if (!open) {
+        terminalPanel.classList.remove('is-fullscreen');
+        if (terminalFullscreenBtn) {
+          terminalFullscreenBtn.setAttribute('aria-pressed', 'false');
+          terminalFullscreenBtn.setAttribute('title', 'Full screen');
+          const icon = terminalFullscreenBtn.querySelector('i');
+          if (icon) {
+            icon.className = 'fa-solid fa-expand';
+          }
+        }
+      }
+    }
+
+    function showTerminalFallback(show) {
+      if (!terminalFallback) return;
+      terminalFallback.classList.toggle('is-visible', show);
+      terminalFallback.setAttribute('aria-hidden', String(!show));
+    }
+
+    function ensureTerminalFrame() {
+      if (!terminalFrame) return;
+      const target = terminalFrame.dataset.src;
+      if (target && terminalFrame.getAttribute('src') !== target) {
+        terminalFrame.setAttribute('src', target);
+      }
+    }
+
+    function armTerminalFallback() {
+      if (!terminalFrame) return;
+      showTerminalFallback(false);
+      if (terminalFallbackTimer) {
+        window.clearTimeout(terminalFallbackTimer);
+      }
+      terminalFallbackTimer = window.setTimeout(() => {
+        showTerminalFallback(true);
+      }, 2000);
+    }
+
+    if (toggleTerminalBtn) {
+      toggleTerminalBtn.addEventListener('click', () => {
+        const open = terminalPanel && terminalPanel.classList.contains('is-open');
+        const nextOpen = !open;
+        setTerminalOpen(nextOpen);
+        if (nextOpen) {
+          ensureTerminalFrame();
+          armTerminalFallback();
+        }
+      });
+    }
+
+    if (terminalCloseBtn) {
+      terminalCloseBtn.addEventListener('click', () => {
+        setTerminalOpen(false);
+        showTerminalFallback(false);
+        if (terminalFallbackTimer) {
+          window.clearTimeout(terminalFallbackTimer);
+        }
+      });
+    }
+
+    if (terminalFullscreenBtn) {
+      terminalFullscreenBtn.addEventListener('click', () => {
+        if (!terminalPanel) return;
+        const isFullscreen = terminalPanel.classList.toggle('is-fullscreen');
+        terminalFullscreenBtn.setAttribute('aria-pressed', String(isFullscreen));
+        terminalFullscreenBtn.setAttribute('title', isFullscreen ? 'Exit full screen' : 'Full screen');
+        const icon = terminalFullscreenBtn.querySelector('i');
+        if (icon) {
+          icon.className = isFullscreen ? 'fa-solid fa-compress' : 'fa-solid fa-expand';
+        }
+      });
+    }
+
+    if (terminalFrame) {
+      terminalFrame.addEventListener('load', () => {
+        if (terminalFallbackTimer) {
+          window.clearTimeout(terminalFallbackTimer);
+        }
+        showTerminalFallback(false);
+      });
+      terminalFrame.addEventListener('error', () => {
+        if (terminalFallbackTimer) {
+          window.clearTimeout(terminalFallbackTimer);
+        }
+        showTerminalFallback(true);
+      });
+    }
   });
 </script>
