@@ -571,7 +571,7 @@ class SmartBox extends HTMLElement {
     
     const API_URL = "https://digplan.app/llm/chat";
     const requestBody = {
-      model: "nvidia/nemotron-3-nano-30b-a3b:free",
+      model: "openrouter/aurora-alpha",
       temperature: 0.2,
       messages: [
         { role: "system", content: instructions },

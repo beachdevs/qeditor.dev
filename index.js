@@ -103,7 +103,6 @@ function syncEditorMode(code) {
 }
 
 function buildPreviewSrcdoc(code) {
-    const source = code || '';
     if (isMarkdownDocument(code)) {
         const markdownSource = stripMarkdownSentinel(code);
         const markdownHtml = renderMarkdown(markdownSource);
@@ -230,11 +229,11 @@ function buildPreviewSrcdoc(code) {
     }
 
     const parser = new DOMParser();
-    const parsed = parser.parseFromString(source, 'text/html');
+    const parsed = parser.parseFromString(code || '', 'text/html');
     const headHtml = sanitizePreviewHead(parsed.head ? parsed.head.innerHTML : '');
     const bodyHtml = parsed.body && parsed.body.innerHTML.trim()
         ? parsed.body.innerHTML
-        : source;
+        : (code || '');
 
     return `<!doctype html>
 <html lang="en">
