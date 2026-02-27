@@ -5,9 +5,9 @@
     --vscode-border: #3c3c3c;
     --vscode-fg: #d4d4d4;
     --vscode-muted: #858585;
-    --vscode-button-bg: #0e639c;
-    --vscode-button-hover: #1177bb;
-    --vscode-button-active: #0b4f7c;
+    --vscode-button-bg: #3a3a3d;
+    --vscode-button-hover: #4a4a4f;
+    --vscode-button-active: #2f2f33;
     --vscode-caret: #ffffff;
 }
 
@@ -47,66 +47,77 @@ smart-box {
     border-left: 1px solid var(--vscode-border);
     background: var(--vscode-bg);
 }
-#editor, #highlighting-pre {
-    margin: 0;
-    padding: 10px;
-    box-sizing: border-box;
-    font-family: Menlo, Consolas, Monaco, 'Courier New', monospace;
-    font-size: 14px;
-    line-height: 1.5;
-    height: 100%;
-    width: 100%;
-    overflow-y: auto; /* Allow scrolling independently */
-    white-space: pre;
-    word-wrap: normal;
+.editor-toolbar {
+    position: absolute;
+    top: 6px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1100;
+    pointer-events: none;
+    padding: 6px 10px;
+    border: 1px solid #3a3a3d;
+    border-radius: 8px;
+    background: rgba(22, 22, 24, 0.92);
+    color: #b9bac0;
+    font-size: 11px;
+    font-family: 'Segoe UI', 'Segoe WPC', Tahoma, sans-serif;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+    backdrop-filter: blur(2px);
 }
-#editor.line-numbers, #highlighting-pre.line-numbers {
-    padding-left: 3.8em;
+.editor-toolbar code {
+    color: #d6d7dc;
+    font-family: 'JetBrains Mono', 'SFMono-Regular', Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+    font-size: 11px;
 }
-#editor { /* Textarea */
+#editor {
     position: absolute;
     top: 0;
     left: 0;
-    z-index: 1;
-    background: transparent;
-    color: transparent; /* Make actual text transparent */
-    caret-color: var(--vscode-caret);
+    width: 0;
+    height: 0;
+    opacity: 0;
+    pointer-events: none;
     border: none;
     resize: none;
+    outline: none;
 }
-#editor-wrapper.typing #editor {
-    color: var(--vscode-fg);
-    caret-color: var(--vscode-caret);
+#editor-container:focus-within,
+#editor-wrapper:focus-within {
+    outline: none;
+    box-shadow: none;
 }
-#editor-wrapper.typing #highlighting-pre {
-    visibility: hidden;
-}
-#highlighting-pre { /* Preformatted block for Prism.js */
+#editor-view {
     position: absolute;
-    top: 0;
-    left: 0;
-    z-index: 0;
-    pointer-events: none; /* Allow clicks to go through to textarea */
-    color: var(--vscode-fg);
+    inset: 0;
+    z-index: 1;
     background: var(--vscode-bg);
     border: none;
 }
-#highlighting-pre code {
-    display: block;
-}
-#highlighting-pre.line-numbers {
-    padding-left: 3.8em;
-}
-.line-numbers .line-numbers-rows {
-    border-right: 1px solid var(--vscode-border);
-}
-.line-numbers-rows > span:before {
+#editor-view .ace_gutter {
+    background: #1b1b1b;
     color: var(--vscode-muted);
 }
-#highlighting-pre .token {
-    /* Keep token width stable in Chrome by avoiding style/weight shifts. */
-    font-style: normal !important;
-    font-weight: normal !important;
+#editor-view .ace_cursor {
+    color: var(--vscode-caret);
+}
+#editor-view .ace_scrollbar {
+    scrollbar-color: #4b4b4d #1b1b1d;
+}
+#editor-view .ace_scrollbar::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+#editor-view .ace_scrollbar::-webkit-scrollbar-track {
+    background: #1b1b1d;
+}
+#editor-view .ace_scrollbar::-webkit-scrollbar-thumb {
+    background: #4b4b4d;
+    border-radius: 8px;
+    border: 2px solid #1b1b1d;
+}
+#editor-view .ace_scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #616166;
 }
 #preview-frame {
     width: 100%;
@@ -119,17 +130,22 @@ smart-box {
     box-sizing: border-box;
     border: none;
 }
-.toggle-code-button {
+.top-controls {
     position: fixed;
     top: 10px;
     right: 12px;
     z-index: 9550;
-    padding: 6px 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.toggle-code-button {
+    padding: 5px 8px;
     background: var(--vscode-button-bg);
-    color: #fff;
-    border: 1px solid transparent;
-    border-radius: 6px;
-    font-size: 12px;
+    color: #f2f2f2;
+    border: 1px solid #4e4e52;
+    border-radius: 5px;
+    font-size: 11px;
     font-family: 'Segoe UI', 'Segoe WPC', Tahoma, sans-serif;
     cursor: pointer;
 }
@@ -140,16 +156,12 @@ smart-box {
     background: var(--vscode-button-active);
 }
 .global-reset-button {
-    position: fixed;
-    top: 10px;
-    right: 96px;
-    z-index: 9550;
-    padding: 6px 10px;
+    padding: 5px 8px;
     background: var(--vscode-button-bg);
-    color: #fff;
-    border: 1px solid transparent;
-    border-radius: 6px;
-    font-size: 12px;
+    color: #f2f2f2;
+    border: 1px solid #4e4e52;
+    border-radius: 5px;
+    font-size: 11px;
     font-family: 'Segoe UI', 'Segoe WPC', Tahoma, sans-serif;
     cursor: pointer;
 }
@@ -159,15 +171,32 @@ smart-box {
 .global-reset-button:active {
     background: var(--vscode-button-active);
 }
+.toggle-assistant-button {
+    padding: 5px 8px;
+    background: var(--vscode-button-bg);
+    color: #f2f2f2;
+    border: 1px solid #4e4e52;
+    border-radius: 5px;
+    font-size: 11px;
+    font-family: 'Segoe UI', 'Segoe WPC', Tahoma, sans-serif;
+    cursor: pointer;
+}
+.toggle-assistant-button:hover {
+    background: var(--vscode-button-hover);
+}
+.toggle-assistant-button:active {
+    background: var(--vscode-button-active);
+}
+.toggle-assistant-button:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
 body.code-frame-hidden #editor-container {
     display: none;
 }
 body.code-frame-hidden #preview-panel {
     flex: 1 1 100%;
     width: 100%;
-}
-body.code-frame-hidden .global-reset-button {
-    right: 12px;
 }
 .format-hint {
     position: absolute;
@@ -184,13 +213,13 @@ body.code-frame-hidden .global-reset-button {
     top: 10px;
     right: 10px;
     z-index: 1000;
-    padding: 6px 12px;
+    padding: 5px 9px;
     background-color: var(--vscode-button-bg);
-    color: #ffffff;
-    border: 1px solid transparent;
-    border-radius: 4px;
+    color: #f2f2f2;
+    border: 1px solid #4e4e52;
+    border-radius: 5px;
     cursor: pointer;
-    font-size: 12px;
+    font-size: 11px;
     font-family: 'Segoe UI', 'Segoe WPC', Tahoma, sans-serif;
     transition: background-color 0.2s;
 }
@@ -250,7 +279,7 @@ body.code-frame-hidden .global-reset-button {
     .toggle-code-button {
         display: none;
     }
-    .global-reset-button {
+    .top-controls {
         right: 10px;
         top: calc(10px + env(safe-area-inset-top, 0px));
     }

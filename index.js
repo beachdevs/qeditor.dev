@@ -1,8 +1,33 @@
 const editor = document.getElementById('editor');
-const editorWrapper = document.getElementById('editor-wrapper');
-const highlightingCodeEl = document.getElementById('highlighting-code');
+const editorView = document.getElementById('editor-view');
 const previewFrame = document.getElementById('preview-frame');
 const toggleCodeBtn = document.getElementById('toggle-code-btn');
+const MARKDOWN_SENTINEL = '<!-- markdown -->';
+const md = typeof window.markdownit === 'function'
+    ? window.markdownit({
+        html: false,
+        linkify: true,
+        typographer: true,
+        breaks: true
+    })
+    : null;
+let lastAceMode = null;
+const aceEditor = window.ace && editorView
+    ? window.ace.edit(editorView, {
+        mode: 'ace/mode/html',
+        theme: 'ace/theme/tomorrow_night_eighties',
+        fontSize: '11px',
+        fontFamily: "'JetBrains Mono', 'SFMono-Regular', Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
+        showPrintMargin: false,
+        tabSize: 2,
+        useSoftTabs: true,
+        wrap: false
+    })
+    : null;
+
+if (aceEditor) {
+    aceEditor.session.setUseWorker(false);
+}
 
 const CODE_FRAME_HIDDEN_KEY = 'qeditor-code-frame-hidden';
 
@@ -45,11 +70,43 @@ function sanitizePreviewHead(headHtml = '') {
     return template.innerHTML;
 }
 
+function isMarkdownDocument(code = '') {
+    const firstLine = (code || '').split(/\r?\n/, 1)[0].trim();
+    return firstLine === MARKDOWN_SENTINEL;
+}
+
+function stripMarkdownSentinel(code = '') {
+    if (!isMarkdownDocument(code)) return code || '';
+    return (code || '').replace(/^.*(?:\r?\n|$)/, '');
+}
+
+function escapeHtml(str = '') {
+    return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function renderMarkdown(markdownSource = '') {
+    if (md) return md.render(markdownSource);
+    return `<pre>${escapeHtml(markdownSource)}</pre>`;
+}
+
+function syncEditorMode(code) {
+    if (!aceEditor) return;
+    const nextMode = isMarkdownDocument(code) ? 'ace/mode/markdown' : 'ace/mode/html';
+    if (nextMode === lastAceMode) return;
+    aceEditor.session.setMode(nextMode);
+    lastAceMode = nextMode;
+}
+
 function buildPreviewSrcdoc(code) {
     const source = code || '';
-    const mdMatch = source.match(/^\uFEFF?[\t ]*<!--\s*markdown\s*-->\r?\n?/i);
-    if (mdMatch) {
-        const mdBody = source.slice(mdMatch[0].length).replace(/<\/script/gi, '<\\/script');
+    if (isMarkdownDocument(code)) {
+        const markdownSource = stripMarkdownSentinel(code);
+        const markdownHtml = renderMarkdown(markdownSource);
         return `<!doctype html>
 <html lang="en">
 <head>
@@ -65,17 +122,109 @@ function buildPreviewSrcdoc(code) {
       background: #252526;
       color: #d4d4d4;
       font-family: 'Segoe UI', Tahoma, sans-serif;
+      scrollbar-color: #4b4b4d #1b1b1d;
+    }
+    html::-webkit-scrollbar,
+    body::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+    html::-webkit-scrollbar-track,
+    body::-webkit-scrollbar-track {
+      background: #1b1b1d;
+    }
+    html::-webkit-scrollbar-thumb,
+    body::-webkit-scrollbar-thumb {
+      background: #4b4b4d;
+      border-radius: 8px;
+      border: 2px solid #1b1b1d;
+    }
+    html::-webkit-scrollbar-thumb:hover,
+    body::-webkit-scrollbar-thumb:hover {
+      background: #616166;
+    }
+    .markdown-body {
+      max-width: 900px;
+      margin: 0 auto;
+      line-height: 1.7;
+      font-size: 16px;
+    }
+    .markdown-body h1,
+    .markdown-body h2,
+    .markdown-body h3,
+    .markdown-body h4 {
+      color: #f1f5f9;
+      margin-top: 1.5em;
+      margin-bottom: 0.55em;
+      line-height: 1.25;
+    }
+    .markdown-body p,
+    .markdown-body li,
+    .markdown-body blockquote {
+      color: #d4d4d4;
+    }
+    .markdown-body a {
+      color: #8ab4f8;
+      text-decoration: none;
+    }
+    .markdown-body a:hover {
+      text-decoration: underline;
+    }
+    .markdown-body code {
+      background: #1b1b1d;
+      color: #f59e9e;
+      border: 1px solid #343437;
+      border-radius: 6px;
+      padding: 0.15em 0.35em;
+      font-family: 'JetBrains Mono', Menlo, Monaco, Consolas, monospace;
+      font-size: 0.92em;
+    }
+    .markdown-body pre {
+      background: #1b1b1d;
+      border: 1px solid #343437;
+      border-radius: 10px;
+      padding: 12px;
+      overflow: auto;
+    }
+    .markdown-body pre code {
+      background: transparent;
+      border: 0;
+      color: #e5e7eb;
+      padding: 0;
+    }
+    .markdown-body blockquote {
+      margin: 1em 0;
+      padding: 0.1em 1em;
+      border-left: 3px solid #4b5563;
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: 0 8px 8px 0;
+    }
+    .markdown-body hr {
+      border: 0;
+      border-top: 1px solid #343437;
+      margin: 1.5em 0;
+    }
+    .markdown-body table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1em 0;
+    }
+    .markdown-body th,
+    .markdown-body td {
+      border: 1px solid #343437;
+      padding: 8px 10px;
+      text-align: left;
+    }
+    .markdown-body th {
+      background: #212224;
+      color: #f1f5f9;
     }
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
-  <div id="app"></div>
-  <script type="text/plain" id="md-src">${mdBody}</script>
-  <script>
-    const md = document.getElementById('md-src').textContent;
-    document.getElementById('app').innerHTML = marked.parse(md);
-  </script>
+  <article class="markdown-body">
+    ${markdownHtml}
+  </article>
 </body>
 </html>`;
     }
@@ -103,6 +252,26 @@ function buildPreviewSrcdoc(code) {
       background: #252526;
       color: #d4d4d4;
       font-family: 'Segoe UI', Tahoma, sans-serif;
+      scrollbar-color: #4b4b4d #1b1b1d;
+    }
+    html::-webkit-scrollbar,
+    body::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+    html::-webkit-scrollbar-track,
+    body::-webkit-scrollbar-track {
+      background: #1b1b1d;
+    }
+    html::-webkit-scrollbar-thumb,
+    body::-webkit-scrollbar-thumb {
+      background: #4b4b4d;
+      border-radius: 8px;
+      border: 2px solid #1b1b1d;
+    }
+    html::-webkit-scrollbar-thumb:hover,
+    body::-webkit-scrollbar-thumb:hover {
+      background: #616166;
     }
   </style>
 </head>
@@ -136,12 +305,6 @@ async function formatCode(code) {
     }
 }
 
-function syncScroll() {
-    const pre = document.getElementById('highlighting-pre');
-    pre.scrollTop = editor.scrollTop;
-    pre.scrollLeft = editor.scrollLeft;
-}
-
 function toBase64(str) {
     return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (_, p1) => String.fromCharCode(parseInt(p1, 16))));
 }
@@ -150,40 +313,34 @@ function fromBase64(str) {
 }
 
 let updateTimeout;
-let typingOverlayTimeout;
+let syncingFromAce = false;
+let syncingToAce = false;
 
-function showPlainEditorDuringTyping() {
-    if (!editorWrapper) return;
-    editorWrapper.classList.add('typing');
-    clearTimeout(typingOverlayTimeout);
-    typingOverlayTimeout = setTimeout(() => {
-        editorWrapper.classList.remove('typing');
-    }, 220);
+if (aceEditor) {
+    aceEditor.session.on('change', () => {
+        if (syncingToAce) return;
+        syncingFromAce = true;
+        editor.value = aceEditor.getValue();
+        editor.dispatchEvent(new Event('input'));
+        syncingFromAce = false;
+    });
 }
 
 editor.addEventListener('input', () => {
-    showPlainEditorDuringTyping();
     const code = editor.value;
-    const hcode = code.endsWith('\n') ? code + ' ' : code;
-    highlightingCodeEl.textContent = hcode;
-    Prism.highlightElement(highlightingCodeEl);
+    syncEditorMode(code);
+    if (aceEditor && !syncingFromAce && aceEditor.getValue() !== code) {
+        syncingToAce = true;
+        aceEditor.setValue(code, -1);
+        syncingToAce = false;
+    }
     updatePreview(code);
-    syncScroll();
     clearTimeout(updateTimeout);
     updateTimeout = setTimeout(async () => {
         localStorage.setItem(storeKey, code);
         const compressed = await compressCode(code);
         window.location.hash = compressed || '';
     }, 1000);
-});
-
-editor.addEventListener('scroll', syncScroll);
-editor.addEventListener('focus', () => {
-    if (editorWrapper) editorWrapper.classList.add('typing');
-});
-editor.addEventListener('blur', () => {
-    if (editorWrapper) editorWrapper.classList.remove('typing');
-    clearTimeout(typingOverlayTimeout);
 });
 
 window.addEventListener("keydown", async e => {
@@ -197,7 +354,8 @@ window.addEventListener("keydown", async e => {
         }
 
         try {
-            const formatted = await formatCode(editor.value);
+            const source = aceEditor ? aceEditor.getValue() : editor.value;
+            const formatted = await formatCode(source);
             editor.value = formatted;
             editor.dispatchEvent(new Event("input"));
         } catch (err) {

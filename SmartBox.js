@@ -135,7 +135,7 @@ class SmartBox extends HTMLElement {
         min-width: 64px;
         border: 1px solid transparent;
         border-radius: 10px;
-        background: var(--accent);
+        background: #3a3a3d;
         color: #fff;
         cursor: pointer;
         font-size: 12px;
@@ -143,10 +143,10 @@ class SmartBox extends HTMLElement {
         letter-spacing: 0.03em;
       }
       .send-button:hover {
-        background: var(--accent-hover);
+        background: #4a4a4f;
       }
       .send-button:active {
-        background: var(--accent-active);
+        background: #2f2f33;
       }
       .send-button:disabled,
       input[type="text"]:disabled {
@@ -316,7 +316,7 @@ class SmartBox extends HTMLElement {
     return !this.typingDemoStopped && !this.input.value && document.activeElement !== this.input;
   }
 
-  async typePlaceholderText(text, speed = 42) {
+  async typePlaceholderText(text, speed = 64) {
     this.input.placeholder = "";
     for (let i = 0; i < text.length; i++) {
       if (!this.canRunTypingDemo()) return false;
@@ -330,18 +330,21 @@ class SmartBox extends HTMLElement {
     await this.sleep(200);
     if (!this.canRunTypingDemo()) return;
 
-    for (let i = 0; i < this.typingPhrases.length; i++) {
-      const ok = await this.typePlaceholderText(this.typingPhrases[i]);
-      if (!ok) return;
-      await this.sleep(500);
-      if (i < this.typingPhrases.length - 1) {
-        this.input.placeholder = "";
-        await this.sleep(220);
+    while (this.canRunTypingDemo()) {
+      for (let i = 0; i < this.typingPhrases.length; i++) {
+        const ok = await this.typePlaceholderText(this.typingPhrases[i]);
+        if (!ok) return;
+        await this.sleep(700);
+        if (i < this.typingPhrases.length - 1) {
+          this.input.placeholder = "";
+          await this.sleep(300);
+        }
       }
-    }
 
-    if (this.canRunTypingDemo()) {
-      this.input.placeholder = this.placeholderFallback;
+      if (this.canRunTypingDemo()) {
+        this.input.placeholder = "";
+        await this.sleep(420);
+      }
     }
   }
 
