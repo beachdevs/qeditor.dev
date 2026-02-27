@@ -46,12 +46,46 @@ function sanitizePreviewHead(headHtml = '') {
 }
 
 function buildPreviewSrcdoc(code) {
+    const source = code || '';
+    const mdMatch = source.match(/^\uFEFF?[\t ]*<!--\s*markdown\s*-->\r?\n?/i);
+    if (mdMatch) {
+        const mdBody = source.slice(mdMatch[0].length).replace(/<\/script/gi, '<\\/script');
+        return `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="${PREVIEW_CSP}">
+  <style>
+    html, body {
+      margin: 0;
+      padding: 20px;
+      min-height: 100%;
+      box-sizing: border-box;
+      background: #252526;
+      color: #d4d4d4;
+      font-family: 'Segoe UI', Tahoma, sans-serif;
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+</head>
+<body>
+  <div id="app"></div>
+  <script type="text/plain" id="md-src">${mdBody}</script>
+  <script>
+    const md = document.getElementById('md-src').textContent;
+    document.getElementById('app').innerHTML = marked.parse(md);
+  </script>
+</body>
+</html>`;
+    }
+
     const parser = new DOMParser();
-    const parsed = parser.parseFromString(code || '', 'text/html');
+    const parsed = parser.parseFromString(source, 'text/html');
     const headHtml = sanitizePreviewHead(parsed.head ? parsed.head.innerHTML : '');
     const bodyHtml = parsed.body && parsed.body.innerHTML.trim()
         ? parsed.body.innerHTML
-        : (code || '');
+        : source;
 
     return `<!doctype html>
 <html lang="en">
