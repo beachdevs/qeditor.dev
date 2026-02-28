@@ -71,17 +71,19 @@
     <button id="terminal-fullscreen-btn" class="terminal-float-btn" type="button" aria-pressed="false" title="Full screen">
       <i class="fa-solid fa-expand"></i>
     </button>
-    <button id="terminal-close-btn" class="terminal-float-btn" type="button" title="Close">
-      <i class="fa-solid fa-xmark"></i>
-    </button>
   </div>
+  <button id="terminal-close-btn" class="terminal-float-btn terminal-minimize-btn" type="button" title="Minimize terminal">
+    <i class="fa-solid fa-minus"></i>
+  </button>
   <div id="terminal-fallback" class="terminal-fallback" aria-hidden="true">
     <div class="terminal-fallback__card">
       <div class="terminal-fallback__title">Terminal not reachable</div>
       <div class="terminal-fallback__text">
-        You can run a terminal on screen to a running container on your machine.
+        Connect this on-screen terminal to a running Linux container on your machine (macOS).
+        Download <code>container.zip</code> or start your <code>ttyd</code> container.
       </div>
       <a class="terminal-fallback__link" href="container.zip" download>Download container.zip</a>
+      <a class="terminal-fallback__link" href="https://github.com/beachdevs/qeditor.dev#terminal-container-macos" target="_blank" rel="noopener noreferrer">Read setup guide on GitHub</a>
     </div>
   </div>
   <iframe
@@ -146,6 +148,14 @@
     const terminalFrame = document.getElementById('terminal-frame');
     const terminalFallback = document.getElementById('terminal-fallback');
     let terminalFallbackTimer = null;
+    let terminalFrameLoaded = false;
+
+    function clearTerminalFallbackTimer() {
+      if (terminalFallbackTimer) {
+        window.clearTimeout(terminalFallbackTimer);
+        terminalFallbackTimer = null;
+      }
+    }
 
     function setTerminalOpen(open) {
       if (!terminalPanel || !toggleTerminalBtn) return;
@@ -176,18 +186,20 @@
       if (!terminalFrame) return;
       const target = terminalFrame.dataset.src;
       if (target && terminalFrame.getAttribute('src') !== target) {
+        terminalFrameLoaded = false;
         terminalFrame.setAttribute('src', target);
+        return true;
       }
+      return false;
     }
 
     function armTerminalFallback() {
       if (!terminalFrame) return;
       showTerminalFallback(false);
-      if (terminalFallbackTimer) {
-        window.clearTimeout(terminalFallbackTimer);
-      }
+      clearTerminalFallbackTimer();
       terminalFallbackTimer = window.setTimeout(() => {
         showTerminalFallback(true);
+        terminalFallbackTimer = null;
       }, 2000);
     }
 
@@ -197,8 +209,13 @@
         const nextOpen = !open;
         setTerminalOpen(nextOpen);
         if (nextOpen) {
-          ensureTerminalFrame();
-          armTerminalFallback();
+          const didNavigate = ensureTerminalFrame();
+          if (didNavigate || !terminalFrameLoaded) {
+            armTerminalFallback();
+          } else {
+            clearTerminalFallbackTimer();
+            showTerminalFallback(false);
+          }
         }
       });
     }
@@ -207,9 +224,7 @@
       terminalCloseBtn.addEventListener('click', () => {
         setTerminalOpen(false);
         showTerminalFallback(false);
-        if (terminalFallbackTimer) {
-          window.clearTimeout(terminalFallbackTimer);
-        }
+        clearTerminalFallbackTimer();
       });
     }
 
@@ -228,15 +243,13 @@
 
     if (terminalFrame) {
       terminalFrame.addEventListener('load', () => {
-        if (terminalFallbackTimer) {
-          window.clearTimeout(terminalFallbackTimer);
-        }
+        terminalFrameLoaded = true;
+        clearTerminalFallbackTimer();
         showTerminalFallback(false);
       });
       terminalFrame.addEventListener('error', () => {
-        if (terminalFallbackTimer) {
-          window.clearTimeout(terminalFallbackTimer);
-        }
+        terminalFrameLoaded = false;
+        clearTerminalFallbackTimer();
         showTerminalFallback(true);
       });
     }

@@ -303,7 +303,6 @@ body.code-frame-hidden #preview-panel {
     top: 8px;
     right: 10px;
     display: flex;
-    gap: 6px;
     z-index: 2;
     pointer-events: auto;
 }
@@ -326,6 +325,12 @@ body.code-frame-hidden #preview-panel {
 }
 .terminal-float-btn:active {
     background: rgba(24, 24, 28, 0.95);
+}
+.terminal-minimize-btn {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    z-index: 2;
 }
 #terminal-frame {
     flex: 1;
@@ -382,5 +387,9 @@ body.code-frame-hidden #preview-panel {
     }
     .terminal-panel {
         height: 45vh;
+    }
+    .terminal-minimize-btn {
+        right: 8px;
+        bottom: calc(8px + env(safe-area-inset-bottom, 0px));
     }
 }

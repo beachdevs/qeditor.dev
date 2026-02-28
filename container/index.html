@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Framed View</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      font-family: system-ui, sans-serif;
+    }
+    .frames {
+      display: grid;
+      grid-template-rows: 1fr 1fr;
+      height: 100vh;
+      width: 100vw;
+    }
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="frames">
+    <iframe src="https://qeditor.dev" title="qeditor.dev"></iframe>
+    <iframe src="http://localhost:7681" title="localhost:7681"></iframe>
+  </div>
+</body>
+</html>

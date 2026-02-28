@@ -54,6 +54,31 @@ python3 -m http.server 4173
 
 Then open `http://127.0.0.1:4173`.
 
+## Terminal Container (macOS)
+
+QEditor's Terminal button connects to `http://localhost:7681` (served by `ttyd`).
+
+Runtime behavior:
+- These scripts use Apple's `container` command on macOS.
+- For other platforms, edit `container/start.sh`, `container/build.sh`, and `container/stop.sh` to use your preferred runtime.
+
+To run the container locally:
+
+1. Download `container.zip` from the app fallback panel and unzip it.
+2. Open Terminal, `cd` into the unzipped `container` folder, and start the container:
+   ```bash
+   ./start.sh
+   ```
+3. Click the `Terminal` button in QEditor.
+
+Stop the container when done:
+
+```bash
+./stop.sh
+```
+
+If you already have your own `ttyd` container or host at port `7681`, QEditor can connect to that instead.
+
 ## Notes
 
 - The app is intentionally client-side and stateful via URL hash + localStorage.
