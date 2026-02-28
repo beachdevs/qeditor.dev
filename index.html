@@ -59,10 +59,21 @@
 <div class="floating-toolbar" aria-hidden="true">
   <div class="floating-toolbar__left"><code>&lt;!-- markdown --&gt;</code> for md document</div>
   <div class="floating-toolbar__right">
-    <button id="global-reset-btn" class="floating-toolbar__button" data-reset="true" type="button" title="Clear localStorage and reload">Reset</button>
-    <button id="toggle-code-btn" class="floating-toolbar__button" type="button" aria-controls="editor-container" aria-expanded="true">Hide Code</button>
-    <button id="toggle-assistant-btn" class="floating-toolbar__button" type="button" aria-expanded="true">Assistant</button>
-    <button id="toggle-terminal-btn" class="floating-toolbar__button" type="button" aria-expanded="false" aria-controls="terminal-panel">Terminal</button>
+    <button id="global-reset-btn" class="floating-toolbar__button floating-toolbar__button--icon" data-reset="true" type="button" title="Reset editor" aria-label="Reset editor">
+      <i class="fa-solid fa-rotate-left"></i>
+    </button>
+    <button id="download-code-btn" class="floating-toolbar__button floating-toolbar__button--icon" type="button" title="Download current editor code" aria-label="Download current editor code">
+      <i class="fa-solid fa-file-arrow-down"></i>
+    </button>
+    <button id="toggle-code-btn" class="floating-toolbar__button floating-toolbar__button--icon" type="button" aria-controls="editor-container" aria-expanded="true" title="Hide code" aria-label="Hide code">
+      <i class="fa-solid fa-code"></i>
+    </button>
+    <button id="toggle-assistant-btn" class="floating-toolbar__button floating-toolbar__button--icon" type="button" aria-expanded="true" title="Toggle assistant" aria-label="Toggle assistant">
+      <i class="fa-solid fa-robot"></i>
+    </button>
+    <button id="toggle-terminal-btn" class="floating-toolbar__button floating-toolbar__button--icon" type="button" aria-expanded="false" aria-controls="terminal-panel" title="Toggle terminal" aria-label="Toggle terminal">
+      <i class="fa-solid fa-terminal"></i>
+    </button>
   </div>
 </div>
 <smart-box></smart-box>
@@ -110,8 +121,9 @@
       if (!smartBox) return;
       smartBox.style.display = hidden ? 'none' : '';
       if (!toggleAssistantBtn) return;
-      toggleAssistantBtn.textContent = 'Assistant';
       toggleAssistantBtn.setAttribute('aria-expanded', String(!hidden));
+      toggleAssistantBtn.setAttribute('title', hidden ? 'Show assistant' : 'Hide assistant');
+      toggleAssistantBtn.setAttribute('aria-label', hidden ? 'Show assistant' : 'Hide assistant');
     }
 
     const savedHidden = localStorage.getItem(ASSISTANT_HIDDEN_KEY) === '1';
@@ -162,7 +174,8 @@
       terminalPanel.classList.toggle('is-open', open);
       terminalPanel.setAttribute('aria-hidden', String(!open));
       toggleTerminalBtn.setAttribute('aria-expanded', String(open));
-      toggleTerminalBtn.textContent = 'Terminal';
+      toggleTerminalBtn.setAttribute('title', open ? 'Hide terminal' : 'Show terminal');
+      toggleTerminalBtn.setAttribute('aria-label', open ? 'Hide terminal' : 'Show terminal');
       if (!open) {
         terminalPanel.classList.remove('is-fullscreen');
         if (terminalFullscreenBtn) {

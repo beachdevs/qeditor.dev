@@ -2,6 +2,7 @@ const editor = document.getElementById('editor');
 const editorView = document.getElementById('editor-view');
 const previewFrame = document.getElementById('preview-frame');
 const toggleCodeBtn = document.getElementById('toggle-code-btn');
+const downloadCodeBtn = document.getElementById('download-code-btn');
 const MARKDOWN_SENTINEL = '<!-- markdown -->';
 const md = typeof window.markdownit === 'function'
     ? window.markdownit({
@@ -35,8 +36,9 @@ const CODE_FRAME_HIDDEN_KEY = 'qeditor-code-frame-hidden';
 function setCodeFrameHidden(hidden) {
     document.body.classList.toggle('code-frame-hidden', hidden);
     if (!toggleCodeBtn) return;
-    toggleCodeBtn.textContent = hidden ? 'Show Code' : 'Hide Code';
     toggleCodeBtn.setAttribute('aria-expanded', String(!hidden));
+    toggleCodeBtn.setAttribute('title', hidden ? 'Show code' : 'Hide code');
+    toggleCodeBtn.setAttribute('aria-label', hidden ? 'Show code' : 'Hide code');
 }
 
 if (toggleCodeBtn) {
@@ -103,130 +105,166 @@ function syncEditorMode(code) {
     lastAceMode = nextMode;
 }
 
-function buildPreviewSrcdoc(code) {
-    if (isMarkdownDocument(code)) {
-        const markdownSource = stripMarkdownSentinel(code);
-        const markdownHtml = renderMarkdown(markdownSource);
-        return `<!doctype html>
+function getCurrentCode() {
+    return aceEditor ? aceEditor.getValue() : editor.value;
+}
+
+function applyEditorValue(value) {
+    editor.value = value;
+    editor.dispatchEvent(new Event('input'));
+}
+
+function downloadBlob(blob, filename) {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 0);
+}
+
+if (downloadCodeBtn) {
+    downloadCodeBtn.addEventListener('click', () => {
+        const code = getCurrentCode();
+        const isMarkdown = isMarkdownDocument(code);
+        const content = isMarkdown ? stripMarkdownSentinel(code) : code;
+        const filename = isMarkdown ? 'qeditor-code.md' : 'qeditor-code.html';
+        downloadBlob(new Blob([content], { type: 'text/plain;charset=utf-8' }), filename);
+    });
+}
+
+const PREVIEW_BASE_CSS = `
+html, body {
+  margin: 0;
+  padding: 20px;
+  min-height: 100%;
+  box-sizing: border-box;
+  background: #252526;
+  color: #d4d4d4;
+  font-family: 'Segoe UI', Tahoma, sans-serif;
+  scrollbar-color: #4b4b4d #1b1b1d;
+}
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+html::-webkit-scrollbar-track,
+body::-webkit-scrollbar-track {
+  background: #1b1b1d;
+}
+html::-webkit-scrollbar-thumb,
+body::-webkit-scrollbar-thumb {
+  background: #4b4b4d;
+  border-radius: 8px;
+  border: 2px solid #1b1b1d;
+}
+html::-webkit-scrollbar-thumb:hover,
+body::-webkit-scrollbar-thumb:hover {
+  background: #616166;
+}`;
+
+const PREVIEW_MARKDOWN_CSS = `
+.markdown-body {
+  max-width: 900px;
+  margin: 0 auto;
+  line-height: 1.7;
+  font-size: 16px;
+}
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3,
+.markdown-body h4 {
+  color: #f1f5f9;
+  margin-top: 1.5em;
+  margin-bottom: 0.55em;
+  line-height: 1.25;
+}
+.markdown-body p,
+.markdown-body li,
+.markdown-body blockquote {
+  color: #d4d4d4;
+}
+.markdown-body a {
+  color: #8ab4f8;
+  text-decoration: none;
+}
+.markdown-body a:hover {
+  text-decoration: underline;
+}
+.markdown-body code {
+  background: #1b1b1d;
+  color: #f59e9e;
+  border: 1px solid #343437;
+  border-radius: 6px;
+  padding: 0.15em 0.35em;
+  font-family: 'JetBrains Mono', Menlo, Monaco, Consolas, monospace;
+  font-size: 0.92em;
+}
+.markdown-body pre {
+  background: #1b1b1d;
+  border: 1px solid #343437;
+  border-radius: 10px;
+  padding: 12px;
+  overflow: auto;
+}
+.markdown-body pre code {
+  background: transparent;
+  border: 0;
+  color: #e5e7eb;
+  padding: 0;
+}
+.markdown-body blockquote {
+  margin: 1em 0;
+  padding: 0.1em 1em;
+  border-left: 3px solid #4b5563;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 0 8px 8px 0;
+}
+.markdown-body hr {
+  border: 0;
+  border-top: 1px solid #343437;
+  margin: 1.5em 0;
+}
+.markdown-body table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1em 0;
+}
+.markdown-body th,
+.markdown-body td {
+  border: 1px solid #343437;
+  padding: 8px 10px;
+  text-align: left;
+}
+.markdown-body th {
+  background: #212224;
+  color: #f1f5f9;
+}`;
+
+function wrapPreviewDocument({ headHtml = '', bodyHtml = '', extraCss = '' }) {
+    return `<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta http-equiv="Content-Security-Policy" content="${PREVIEW_CSP}">
+  ${headHtml}
   <style>
-    html, body {
-      margin: 0;
-      padding: 20px;
-      min-height: 100%;
-      box-sizing: border-box;
-      background: #252526;
-      color: #d4d4d4;
-      font-family: 'Segoe UI', Tahoma, sans-serif;
-      scrollbar-color: #4b4b4d #1b1b1d;
-    }
-    html::-webkit-scrollbar,
-    body::-webkit-scrollbar {
-      width: 10px;
-      height: 10px;
-    }
-    html::-webkit-scrollbar-track,
-    body::-webkit-scrollbar-track {
-      background: #1b1b1d;
-    }
-    html::-webkit-scrollbar-thumb,
-    body::-webkit-scrollbar-thumb {
-      background: #4b4b4d;
-      border-radius: 8px;
-      border: 2px solid #1b1b1d;
-    }
-    html::-webkit-scrollbar-thumb:hover,
-    body::-webkit-scrollbar-thumb:hover {
-      background: #616166;
-    }
-    .markdown-body {
-      max-width: 900px;
-      margin: 0 auto;
-      line-height: 1.7;
-      font-size: 16px;
-    }
-    .markdown-body h1,
-    .markdown-body h2,
-    .markdown-body h3,
-    .markdown-body h4 {
-      color: #f1f5f9;
-      margin-top: 1.5em;
-      margin-bottom: 0.55em;
-      line-height: 1.25;
-    }
-    .markdown-body p,
-    .markdown-body li,
-    .markdown-body blockquote {
-      color: #d4d4d4;
-    }
-    .markdown-body a {
-      color: #8ab4f8;
-      text-decoration: none;
-    }
-    .markdown-body a:hover {
-      text-decoration: underline;
-    }
-    .markdown-body code {
-      background: #1b1b1d;
-      color: #f59e9e;
-      border: 1px solid #343437;
-      border-radius: 6px;
-      padding: 0.15em 0.35em;
-      font-family: 'JetBrains Mono', Menlo, Monaco, Consolas, monospace;
-      font-size: 0.92em;
-    }
-    .markdown-body pre {
-      background: #1b1b1d;
-      border: 1px solid #343437;
-      border-radius: 10px;
-      padding: 12px;
-      overflow: auto;
-    }
-    .markdown-body pre code {
-      background: transparent;
-      border: 0;
-      color: #e5e7eb;
-      padding: 0;
-    }
-    .markdown-body blockquote {
-      margin: 1em 0;
-      padding: 0.1em 1em;
-      border-left: 3px solid #4b5563;
-      background: rgba(255, 255, 255, 0.03);
-      border-radius: 0 8px 8px 0;
-    }
-    .markdown-body hr {
-      border: 0;
-      border-top: 1px solid #343437;
-      margin: 1.5em 0;
-    }
-    .markdown-body table {
-      width: 100%;
-      border-collapse: collapse;
-      margin: 1em 0;
-    }
-    .markdown-body th,
-    .markdown-body td {
-      border: 1px solid #343437;
-      padding: 8px 10px;
-      text-align: left;
-    }
-    .markdown-body th {
-      background: #212224;
-      color: #f1f5f9;
-    }
+    ${PREVIEW_BASE_CSS}
+    ${extraCss}
   </style>
 </head>
 <body>
-  <article class="markdown-body">
-    ${markdownHtml}
-  </article>
+${bodyHtml}
 </body>
 </html>`;
+}
+
+function buildPreviewSrcdoc(code) {
+    if (isMarkdownDocument(code)) {
+        const bodyHtml = `<article class="markdown-body">${renderMarkdown(stripMarkdownSentinel(code))}</article>`;
+        return wrapPreviewDocument({ bodyHtml, extraCss: PREVIEW_MARKDOWN_CSS });
     }
 
     const parser = new DOMParser();
@@ -236,49 +274,7 @@ function buildPreviewSrcdoc(code) {
         ? parsed.body.innerHTML
         : (code || '');
 
-    return `<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="Content-Security-Policy" content="${PREVIEW_CSP}">
-  ${headHtml}
-  <style>
-    html, body {
-      margin: 0;
-      padding: 20px;
-      min-height: 100%;
-      box-sizing: border-box;
-      background: #252526;
-      color: #d4d4d4;
-      font-family: 'Segoe UI', Tahoma, sans-serif;
-      scrollbar-color: #4b4b4d #1b1b1d;
-    }
-    html::-webkit-scrollbar,
-    body::-webkit-scrollbar {
-      width: 10px;
-      height: 10px;
-    }
-    html::-webkit-scrollbar-track,
-    body::-webkit-scrollbar-track {
-      background: #1b1b1d;
-    }
-    html::-webkit-scrollbar-thumb,
-    body::-webkit-scrollbar-thumb {
-      background: #4b4b4d;
-      border-radius: 8px;
-      border: 2px solid #1b1b1d;
-    }
-    html::-webkit-scrollbar-thumb:hover,
-    body::-webkit-scrollbar-thumb:hover {
-      background: #616166;
-    }
-  </style>
-</head>
-<body>
-${bodyHtml}
-</body>
-</html>`;
+    return wrapPreviewDocument({ headHtml, bodyHtml });
 }
 
 function updatePreview(code) {
@@ -326,8 +322,7 @@ if (aceEditor) {
     aceEditor.session.on('change', () => {
         if (syncingToAce) return;
         syncingFromAce = true;
-        editor.value = aceEditor.getValue();
-        editor.dispatchEvent(new Event('input'));
+        applyEditorValue(aceEditor.getValue());
         syncingFromAce = false;
     });
 }
@@ -352,7 +347,7 @@ editor.addEventListener('input', () => {
 window.addEventListener("keydown", async e => {
     const isMac = navigator.platform.includes("Mac");
     const cmdOrCtrl = isMac ? e.metaKey : e.ctrlKey;
-        if (cmdOrCtrl && e.shiftKey && e.key.toUpperCase() === "F") {
+    if (cmdOrCtrl && e.shiftKey && e.key.toUpperCase() === "F") {
         e.preventDefault();
         if (typeof prettier === "undefined" || typeof prettierPlugins === "undefined") {
             alert("Prettier is still loading... Please wait a moment and try again.");
@@ -362,8 +357,7 @@ window.addEventListener("keydown", async e => {
         try {
             const source = aceEditor ? aceEditor.getValue() : editor.value;
             const formatted = await formatCode(source);
-            editor.value = formatted;
-            editor.dispatchEvent(new Event("input"));
+            applyEditorValue(formatted);
         } catch (err) {
             console.error("Prettier formatting failed:", err);
             alert("Formatting failed. Check console for details.");
@@ -693,8 +687,7 @@ const defaultContent = `<style>
 </script>`;
 
 function setContent(val) {
-    editor.value = val;
-    editor.dispatchEvent(new Event('input'));
+    applyEditorValue(val);
 }
 const hash = window.location.hash.slice(1);
 if (hash) {
@@ -709,8 +702,7 @@ window.addEventListener('hashchange', async () => {
     if (hash) {
         const decompressed = await decompressCode(hash);
         if (decompressed && decompressed !== editor.value) {
-            editor.value = decompressed;
-            editor.dispatchEvent(new Event('input'));
+            applyEditorValue(decompressed);
         }
     }
 });

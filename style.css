@@ -103,6 +103,18 @@ smart-box {
     opacity: 0.65;
     cursor: not-allowed;
 }
+.floating-toolbar__button--icon {
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+}
+.floating-toolbar__button--icon i {
+    pointer-events: none;
+}
 #editor {
     position: absolute;
     top: 0;
